@@ -1,0 +1,40 @@
+{
+  "name": "Français",
+  "code": "fr",
+  "translations": {
+    "navigation": {
+      "relative": "Relatif",
+      "absolute": "Absolu",
+      "home": "Origine",
+      "emergency": "Arrêt d'urgence"
+    },
+    "controls": {
+      "up": "Haut",
+      "down": "Bas",
+      "left": "Gauche",
+      "right": "Droite",
+      "go": "Aller",
+      "stop": "Arrêter",
+      "reset": "Réinitialiser"
+    },
+    "settings": {
+      "connection": "Connexion",
+      "calibration": "Calibration",
+      "preferences": "Préférences",
+      "about": "À propos"
+    },
+    "status": {
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "moving": "En mouvement",
+      "idle": "Au repos",
+      "error": "Erreur"
+    },
+    "units": {
+      "mm": "mm",
+      "degrees": "°",
+      "percent": "%",
+      "seconds": "s"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+# EnderTrack 6 - Conversation Summary
+
+## Développement Progressif
+- **Arrow Direction Fix**: Fixed inverted up/down arrow movement by correcting coordinate system logic in movement.js
+- **Click-and-Go Implementation**: Added click-to-move functionality with confirmation dialog showing coordinates, auto-switching to absolute mode, and filling X,Y,Z inputs
+- **Visual Overlays System**: Implemented overlay system showing future positions (relative/absolute modes) and visited positions with real-time updates
+- **Canvas Architecture Refactoring**: Separated Z-axis visualization from main canvas into dedicated module to resolve code organization issues and errors
+- **Z-Axis Thermometer Enhancement**: Implemented comprehensive Z-axis visualization with zoom, pan, graduations, mouse tracking, and click-to-go functionality matching XY canvas behavior
+- **Decimal Precision Standardization**: Updated all position displays to show 2 decimal places consistently across dialogs, inputs, and status displays
+- **Canvas Resize Handling**: Added ResizeObserver to handle Z-canvas resizing issues when window dimensions change
+- **Yellow Line Visibility**: Enhanced yellow line (future position) visibility when close to blue line (current position) using dashed patterns
+- **3D Printer Speed Realism**: Implemented realistic Ender 3 movement speeds with different rates for travel, precision, and Z-axis movements
+- **Z-Compass Implementation**: Added Z-axis compass matching XY compass design with reset functionality for zoom and pan
+- **Visual Homogenization**: Standardized backgrounds, borders, and styling between XY and Z canvases for consistent appearance
+- **Z-Limits and Cube Logic**: Implemented cube workspace logic where Z-range matches XY plateau size, with white boundary lines and proper zoom constraints
+- **Coordinate System Color Coding**: Changed all coordinate displays (XY and Z) to yellow color (#ffc107) for consistency with potential movement lines
+- **Dialog Style Improvements**: Updated click-and-go dialogs with dark backgrounds, yellow coordinates, blue Go buttons, and improved readability
+- **Canvas Information Layout**: Moved Z-axis information to align with XY canvas information bar, creating unified status display
+- **Graduation Spacing Optimization**: Adjusted Z-axis graduation spacing and line thickness for better visual clarity
+- **Zoom-Adaptive Slider System**: Implemented dynamic slider ranges that adapt to canvas zoom levels, providing precision control
+- **History System Overhaul**: Implemented comprehensive history navigation with frozen recording mode, visual indicators, and dual XY/XYZ history modes
+- **Dual History Implementation**: Created separate XY-only and XYZ complete history systems with mode switching for different use cases
+- **Sub-numbering System**: Implemented position numbering that shows sub-numbers (3-1, 3-2, 3-3) when multiple Z positions exist at same XY coordinates
+- **History UI Redesign**: Updated history navigation with toggle-style buttons matching the relative/absolute design pattern
+- **Interface Styling Unification**: Applied consistent toggle-style design across all navigation elements (mode toggles, arrow pad, Z controls, presets, inputs)
+- **Panel Width Adjustment**: Increased right panel width from 250px to 300px for better history display
+- **Slider Layout Optimization**: Reordered sensitivity control elements to place lock buttons at the end with consistent widths
+- **ResizeObserver Loop Fix**: Fixed infinite loop error by adding protection against resize loops using requestAnimationFrame
+- **Slider Alignment Issues**: Corrected CSS grid layout and styling inconsistencies between XY, X, Y, and Z sliders
+- **Lock System Enhancement**: Added visual indicators and disabled states for locked axes in both relative and absolute modes
+- **Click-and-Go Lock Respect**: Modified click-to-move functionality to respect axis locks, preventing locked coordinates from being updated
+- **Click-and-Go Coordinate Logic**: Implemented logic to use mouse coordinates first, then apply lock filters to preserve locked axis values from inputs
+- **Z-Axis Lock Integration**: Added Z lock check to prevent click-and-go on Z canvas when Z axis is locked, with appropriate cursor changes
+- **UI Design Homogenization**: Unified absolute mode design with relative mode using consistent sections, headers, and styling
+- **Lock Button Standardization**: Replaced lock indicators with clickable lock buttons in absolute mode matching relative mode functionality
+- **Lock Logic Enhancement**: Improved XY coupling logic so clicking any X, Y, or XY lock affects all coupled axes together with consistent color coding
+- **Interface Cleanup**: Removed redundant Fine/Coarse preset buttons, Home button from relative mode, and homing enable checkbox
+- **Home Button Lock System**: Added individual lock buttons for Home XY and Home XYZ functions with independent control
+- **Button Size Standardization**: Increased F/C preset buttons to 28x28px to match lock button dimensions for visual consistency
+- **Homing System Activation**: Removed old setHomingEnabled function that was disabling Home buttons, ensuring they work with individual lock controls
+- **XY Coupling Ergonomics**: Improved XY coupling interface with visual indicators and better positioning
+- **Diagonal Navigation**: Added 8-directional movement with diagonal buttons (↖ ↗ ↙ ↘) and corresponding yellow overlays
+- **XY Coupling Visual Enhancement**: Created dual-layout system for absolute mode with grouped XY inputs when coupled and separate inputs when decoupled
+- **XY Lock Positioning Fix**: Moved XY lock outside inputs with proper grid layout, red color when locked, and input disabling functionality
+- **Overlay Performance Optimization**: Added debouncing to overlay rendering to improve responsiveness
+- **XY Coupling Button Simplification**: Changed to simple "XY 🔗" toggle button with pressed/unpressed visual states
+- **Compass Alignment**: Aligned Z compass with XY compass height and made both perfectly circular
+- **Canvas Layout Optimization**: Expanded Z canvas width to 80px and centered it for better visual balance
+- **Z Controls Design Harmonization**: Updated Z+ and Z- buttons to match arrow pad design with 60x60px size, same styling, and triangle symbols
+
+## Mode Navigation Clavier
+- **Bouton Central Keyboard**: Remplacé le point central par un bouton ⌨️ cliquable pour activer le mode navigation clavier
+- **Interface Désactivée**: En mode clavier, tous les boutons et contrôles sont grisés (opacity: 0.3) sauf les contrôles de sensibilité
+- **Navigation Log**: Tableau de logs en temps réel (160px fixe) affichant tous les mouvements avec timestamp et actions
+- **Détection Diagonales**: Support complet des combinaisons de touches (↖ ↗ ↙ ↘) avec détection simultanée des touches
+- **Animations Boutons**: Boutons s'illuminent en jaune lors des pressions clavier même si désactivés
+- **Zone Molette Z**: Remplace les boutons Z+/Z- par une zone interactive avec roue dentée et barre dentée
+- **Curseur ns-resize**: Curseur vertical sur toute la zone Z pour indiquer le contrôle molette
+- **Animation Réaliste**: Roue dentée tourne (22.5°) et barre dentée bouge (±5px) de façon synchronisée
+- **Mouvement Infini**: Animation en boucle pour que les dents restent toujours visibles
+- **Hover Zone Complète**: Détection molette et curseur sur tout le carré gris/jaune des contrôles Z
+
+## Architecture Technique
+- **modules/navigation/keyboard-mode.js**: Gestion complète du mode clavier avec détection touches, animations, et logs
+- **modules/navigation/movement.js**: Moteur de mouvement avec vitesses réalistes Ender 3 et support diagonales
+- **modules/canvas/interactions.js**: Interactions canvas XY avec click-to-go et respect des verrous
+- **modules/canvas/z-visualization.js**: Visualisation Z dédiée avec thermomètre, zoom/pan, et interactions
+- **modules/state/state.js**: Gestion d'état avec historiques duaux (XY/XYZ) et mode navigation
+- **modules/navigation/controls.js**: Contrôles navigation avec sliders adaptatifs et logique de verrouillage
+- **endertrack.css**: Styles unifiés avec design toggle, animations boutons, et zone molette
+- **index.html**: Interface restructurée avec mode clavier, boutons diagonaux, et zone molette
+
+## Fonctionnalités Clés
+- **Mode Clavier Complet**: Navigation au clavier avec logs temps réel et animations visuelles
+- **Zone Molette Interactive**: Roue dentée + barre dentée avec animations réalistes pour contrôle Z
+- **Système de Verrouillage**: Verrouillage d'axes avec respect dans toutes les interactions
+- **Historique Dual**: Navigation XY simple et XYZ complète avec sous-numérotation
+- **Interface Unifiée**: Design cohérent entre modes relatif/absolu avec sections et headers
+- **Animations Fluides**: Boutons, roues, et overlays avec feedback visuel immédiat
+- **Détection Diagonales**: Support complet des 8 directions avec combinaisons de touches
+- **Curseurs Contextuels**: ns-resize pour Z, crosshair pour canvas, grab pour interactions

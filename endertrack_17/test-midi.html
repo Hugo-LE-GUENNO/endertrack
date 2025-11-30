@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test MIDI MPK</title></head>
+<body>
+<h1>Test MIDI MPK Mini</h1>
+<div id="log"></div>
+<script>
+const log = document.getElementById('log');
+function addLog(msg) {
+  log.innerHTML += msg + '<br>';
+  console.log(msg);
+}
+
+addLog('🎹 Test MIDI MPK Mini...');
+addLog('Navigateur: ' + navigator.userAgent);
+
+if (navigator.requestMIDIAccess) {
+  addLog('✅ Web MIDI API supportée');
+  navigator.requestMIDIAccess()
+    .then(midiAccess => {
+      addLog('✅ MIDI Access OK');
+      addLog('Inputs: ' + midiAccess.inputs.size);
+      
+      midiAccess.inputs.forEach((input, id) => {
+        addLog('🎹 ' + input.name + ' (ID: ' + id + ')');
+        input.onmidimessage = (event) => {
+          addLog('🎵 MIDI: ' + Array.from(event.data).join(','));
+        };
+      });
+      
+      if (midiAccess.inputs.size === 0) {
+        addLog('❌ Aucun périphérique MIDI détecté');
+      }
+    })
+    .catch(err => {
+      addLog('❌ MIDI Error: ' + err.message);
+    });
+} else {
+  addLog('❌ Web MIDI API non supportée');
+}
+</script>
+</body>
+</html>

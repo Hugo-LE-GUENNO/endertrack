@@ -1,0 +1,44 @@
+{
+  "name": "Expert",
+  "description": "Mode expert avec terminologie scientifique et paramètres avancés",
+  "terminology": {
+    "controllerModes": {
+      "step": "Discret",
+      "continuous": "Continu"
+    },
+    "navigation": {
+      "plateau": "Stage motorisé",
+      "position": "Coordonnées",
+      "movement": "Déplacement",
+      "sensitivity": "Résolution",
+      "speed": "Vitesse (mm/s)"
+    },
+    "interface": {
+      "canvas": "Visualisation 2D/3D",
+      "zoom": "Facteur de zoom",
+      "pan": "Translation de vue",
+      "coordinates": "Système de coordonnées"
+    },
+    "hardware": {
+      "connection": "Interface série",
+      "baudrate": "Débit (bauds)",
+      "gcode": "Commandes G-code",
+      "homing": "Référencement axes"
+    }
+  },
+  "ui": {
+    "showAdvancedSettings": true,
+    "showDebugInfo": true,
+    "showPrecisionValues": true,
+    "showTechnicalTooltips": true,
+    "precisionDecimals": 3,
+    "showUnits": true,
+    "showPerformanceMetrics": true
+  },
+  "features": {
+    "enableAllPlugins": true,
+    "showExperimentalFeatures": true,
+    "enableDeveloperMode": true,
+    "showSystemLogs": true
+  }
+}

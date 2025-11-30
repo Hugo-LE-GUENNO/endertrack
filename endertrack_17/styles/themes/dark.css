@@ -1,0 +1,68 @@
+/* EnderTrack - Dark Theme */
+/* Variables CSS pour le thème sombre */
+
+:root,
+[data-theme="dark"] {
+  /* Couleurs principales */
+  --primary: #4f9eff;
+  --primary-dark: #3d7dd6;
+  --primary-light: #6bb3ff;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+
+  /* Arrière-plans */
+  --background: #0f0f0f;
+  --panel: #1a1a1a;
+  --panel-dark: #141414;
+  --panel-light: #202020;
+  --canvas-bg: #161616;
+  --input-bg: #1f1f1f;
+
+  /* Texte */
+  --text: #f0f0f0;
+  --text-muted: #b0b0b0;
+  --text-light: #808080;
+
+  /* Bordures */
+  --border: #333333;
+  --border-light: #2a2a2a;
+  --input-border: #333333;
+
+  /* Boutons */
+  --button-bg: #2a2a2a;
+  --button-hover: #353535;
+  --button-active: var(--primary);
+
+  /* Ombres */
+  --shadow: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-light: 0 2px 6px rgba(0,0,0,0.3);
+
+  /* Rayons */
+  --radius: 8px;
+  --radius-small: 4px;
+}
+
+/* Styles spécifiques au thème sombre */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] body {
+  background: var(--background);
+  color: var(--text);
+}
+
+/* Scrollbars pour thème sombre */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--panel-dark);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

@@ -1,0 +1,14 @@
+{
+  "name": "external-controller",
+  "displayName": "Contrôleur Externe",
+  "version": "1.0.0",
+  "description": "Plugin pour utiliser des contrôleurs externes (manettes, joysticks, claviers MIDI) avec EnderTrack",
+  "author": "EnderTrack Team",
+  "type": "core",
+  "icon": "🎮",
+  "main": "main.js",
+  "ui": "ui.html",
+  "styles": "style.css",
+  "dependencies": ["navigation", "state", "ui"],
+  "permissions": ["gamepad-access", "midi-access", "state-write"]
+}

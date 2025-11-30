@@ -1,0 +1,3427 @@
+# ENDERTRACK - COMPLETE RECREATION PROMPT
+# Version: Unified Modular Architecture
+# Date: 2024
+# Purpose: Exact recreation of EnderTrack application with all components
+
+## 🎯 PROJECT OVERVIEW
+Create EnderTrack: a 3D positioning simulator with AI integration for laboratory equipment control.
+
+**Core Features:**
+- 3D position tracking and visualization (X,Y,Z coordinates in mm)
+- Dual navigation modes: Absolute positioning and Relative movement
+- Planning system with multiple lists and templates
+- AI assistant "Enderman" with voice recognition and TTS
+- Template system for laboratory equipment (Petri dishes, microplates, slides)
+- Real-time canvas visualization with zoom/pan
+- Position history and graphing
+- Emergency stop functionality
+
+## 🔧 ENDERSCOPE.PY - MODULE MATÉRIEL CRITIQUE
+
+**Le fichier `enderscope.py` est le cœur du contrôle matériel d'EnderTrack.**
+
+**Classes principales:**
+- **Stage**: Contrôle du stage motorisé 3 axes (X,Y,Z) via G-code
+- **Enderlights**: Contrôle de l'éclairage RGB Arduino/Neopixels
+- **Panel**: Interface de contrôle avec boutons directionnels
+- **ScanPatterns**: Génération de motifs de scan (raster, snake, spiral, random)
+- **SerialUtils**: Utilitaires de communication série
+
+**Fonctionnalités Stage:**
+- Mouvement absolu/relatif (move_absolute, move_relative)
+- Contrôle directionnel (move_towards: north/south/east/west/up/down)
+- Homing automatique (G28)
+- Lecture position courante (M114)
+- Contrôle vitesse (set_speed, set_speed_limit)
+
+**Intégration EnderTrack:**
+- **Dossier enderscope/** : Module matériel complet et isolé
+- **enderscope.js** : API JavaScript principale pour le matériel
+- **hardware-server.py** : Serveur Flask pour communication temps réel
+- **drivers/** : Wrappers JavaScript pour chaque équipement
+- Interface unifiée : EnderTrack → enderscope/ → matériel réel
+- Le plugin Drivers utilise l'API enderscope/ comme interface unique
+
+## 🌉 DOSSIER ENDERSCOPE/ - MODULE MATÉRIEL COMPLET
+
+**Le dossier `enderscope/` regroupe tous les modules de contrôle matériel.**
+
+**Structure enderscope/ :**
+- **enderscope.py** : Classes Python pour matériel (Stage, Enderlights, etc.)
+- **enderscope.js** : API JavaScript principale
+- **hardware-server.py** : Serveur Flask pour communication
+- **drivers/** : Wrappers spécialisés par équipement
+- **serial-config.json** : Configuration ports série
+
+**Fonctions principales:**
+```javascript
+// Interface Stage
+class EnderscopeStage {
+  async moveAbsolute(x, y, z)     // → enderscope.py Stage.move_absolute()
+  async moveRelative(x, y, z)     // → enderscope.py Stage.move_relative()
+  async moveTowards(direction, distance) // → Stage.move_towards()
+  async home()                    // → Stage.home()
+  async getPosition()             // → Stage.get_position()
+  async setSpeed(speed)           // → Stage.set_speed()
+}
+
+// Interface Enderlights
+class EnderscopeLights {
+  async setColor(r, g, b)         // → enderscope.py Enderlights.color()
+  async shutter(open)             // → Enderlights.shutter()
+  async reset()                   // → Enderlights.reset()
+}
+
+// Interface ScanPatterns
+class EnderscopePatterns {
+  generateRaster(cols, rows)      // → enderscope.py ScanPatterns.raster()
+  generateSnake(cols, rows)       // → ScanPatterns.snake()
+  generateSpiral(points)          // → ScanPatterns.spiral()
+}
+```
+
+**Architecture de liaison:**
+- **Python subprocess** : Exécution d'enderscope.py via child_process
+- **API REST locale** : Serveur Flask intégré pour communication
+- **WebSocket** : Communication temps réel pour mouvements
+- **Event system** : Événements pour synchronisation état
+
+**Intégration modules EnderTrack:**
+- `modules/navigation/movement.js` utilise EnderscopeStage
+- `plugins/drivers/` utilise toutes les classes Enderscope
+- Gestion d'erreurs et timeouts pour matériel
+- Cache des positions et état du matériel
+
+## 🔌 PLUGIN-BASED MODULAR ARCHITECTURE
+
+```
+endertrack_2/
+├── index.html                       # Main HTML interface
+├── main.js                          # Minimal bootstrap (50 lines max)
+├── endertrack.css                   # Main stylesheet
+├── package.json                     # Node.js dependencies
+├── config.json                      # Application configuration
+├── enderscope/                      # CORE: Hardware control modules
+│   ├── enderscope.py                # Python hardware control (Stage, Enderlights, etc.)
+│   ├── enderscope.js                # JavaScript bridge to Python
+│   ├── hardware-server.py           # Flask server for hardware communication
+│   ├── serial-config.json           # Serial port configuration
+│   └── drivers/                     # Hardware driver implementations
+│       ├── stage-driver.js          # Stage movement wrapper
+│       ├── lights-driver.js         # Enderlights control wrapper
+│       └── patterns-driver.js       # Scan patterns wrapper
+├── core/                            # Core application logic
+│   ├── app.js                       # Application controller
+│   ├── renderer.js                  # Main rendering engine
+│   ├── coordinator.js               # Module coordination
+│   ├── plugin-manager.js            # Plugin system manager
+│   └── api.js                       # External API interface
+├── modules/                         # Core system modules
+│   ├── state/
+│   │   ├── state.js                 # Central state management
+│   │   └── persistence.js           # Save/load functionality
+│   ├── canvas/
+│   │   ├── canvas.js                # Canvas setup and management
+│   │   ├── renderer.js              # Canvas rendering functions
+│   │   ├── coordinates.js           # Coordinate transformations
+│   │   └── interactions.js          # Canvas mouse/touch events
+│   ├── navigation/
+│   │   ├── movement.js              # Movement calculations
+│   │   ├── controls.js              # Navigation UI controls
+│   │   ├── keyboard.js              # Keyboard navigation
+│   │   └── positioning.js           # Absolute/relative positioning
+│   ├── ui/
+│   │   ├── panels.js                # Panel management
+│   │   ├── tabs.js                  # Dynamic tab system
+│   │   ├── controls.js              # UI controls
+│   │   ├── modals.js                # Modal dialogs
+│   │   └── notifications.js         # User notifications
+│   └── utils/
+│       ├── math.js                  # Mathematical utilities
+│       ├── graphics.js              # Graphics utilities
+│       ├── events.js                # Event handling utilities
+│       └── validation.js            # Input validation
+├── plugins/                         # Plugin system (extensible)
+│   ├── core-plugins/                # Built-in plugins
+│   │   ├── lists/                   # Lists/Planning plugin
+│   │   │   ├── plugin.json          # Plugin manifest
+│   │   │   ├── lists.js             # Lists functionality
+│   │   │   ├── positions.js         # Position management
+│   │   │   ├── templates.js         # Template integration
+│   │   │   └── lists.css            # Lists styling
+│   │   ├── sequences/               # Sequences plugin
+│   │   │   ├── plugin.json          # Plugin manifest
+│   │   │   ├── sequences.js         # Sequence execution
+│   │   │   ├── automation.js        # Automation features
+│   │   │   └── sequences.css        # Sequences styling
+│   │   ├── drivers/                 # Equipment Drivers plugin (CORE ENDERSCOPE)
+│   │   │   ├── plugin.json          # Plugin manifest
+│   │   │   ├── drivers.js           # Main driver controller
+│   │   │   ├── python-bridge.js     # Bridge to enderscope.py
+│   │   │   ├── equipment/           # Equipment drivers
+│   │   │   │   ├── stage.js         # Stage class wrapper (enderscope.py)
+│   │   │   │   ├── enderlights.js   # Enderlights class wrapper
+│   │   │   │   ├── scan-patterns.js # ScanPatterns class wrapper
+│   │   │   │   ├── panel.js         # Panel class wrapper
+│   │   │   │   └── serial-utils.js  # SerialUtils wrapper
+│   │   │   ├── protocols/           # Acquisition protocols
+│   │   │   │   ├── time-lapse.js    # Time-lapse sequences
+│   │   │   │   ├── multi-channel.js # Multi-channel imaging
+│   │   │   │   ├── z-stack.js       # Z-stack acquisition
+│   │   │   │   └── custom.js        # Custom protocols
+│   │   │   ├── scheduler.js         # Temporal sequence scheduler
+│   │   │   ├── data-manager.js      # Image/data management
+│   │   │   └── drivers.css          # Drivers interface styling
+│   │   ├── enderman/                # AI Assistant plugin
+│   │   │   ├── plugin.json          # Plugin manifest
+│   │   │   ├── enderman.js          # AI integration
+│   │   │   ├── voice.js             # Voice recognition
+│   │   │   ├── speech.js            # Text-to-speech
+│   │   │   ├── commands.js          # Command processing
+│   │   │   └── enderman.css         # AI assistant styling
+│   │   └── settings/                # Settings plugin
+│   │       ├── plugin.json          # Plugin manifest
+│   │       ├── settings.js          # Settings management
+│   │       ├── preferences.js       # User preferences
+│   │       └── settings.css         # Settings styling
+│   └── user-plugins/                # User-installable plugins
+│       ├── example-plugin/          # Example plugin structure
+│       │   ├── plugin.json          # Plugin manifest
+│       │   ├── main.js              # Plugin main file
+│       │   ├── ui.html              # Plugin UI template
+│       │   └── style.css            # Plugin styling
+│       └── README.md                # Plugin development guide
+├── styles/                          # Modular CSS
+│   ├── base.css                     # Base styles
+│   ├── layout.css                   # Layout and grid
+│   ├── components.css               # UI components
+│   ├── tabs.css                     # Dynamic tab system
+│   └── responsive.css               # Responsive design
+├── templates/                       # Laboratory templates
+│   ├── petri_35mm.svg              # 35mm Petri dish
+│   ├── petri_35mm.json             # Petri positions
+│   ├── microplate_96.svg           # 96-well microplate
+│   ├── microplate_96.json          # Microplate positions
+│   ├── microscope_slide.svg        # Microscope slide
+│   ├── microscope_slide.json       # Slide positions
+│   └── ibidi_8well.svg             # 8-well chamber
+├── server/                          # Backend services
+│   ├── ai-agent.py                  # Python AI agent (Flask)
+│   ├── ai-server.js                 # Node.js AI server
+│   ├── voice-service.py             # Voice processing service
+│   └── requirements.txt             # Python dependencies
+└── docs/                           # Documentation
+    ├── api.md                       # API documentation
+    ├── architecture.md              # Architecture guide
+    ├── plugin-development.md        # Plugin development guide
+    └── deployment.md                # Deployment guide
+```
+
+## 🎨 UI REQUIREMENTS & DESIGN SPECIFICATIONS
+
+### Layout Structure
+**Create a responsive 3-column layout:**
+- **Left Panel (400px)**: Controls and modes
+- **Center Panel (flexible)**: Canvas visualization
+- **Right Panel (250px)**: Status and history
+
+### Required UI Components
+
+#### 1. Left Panel - Dynamic Tab System
+**Core tabs (always present):**
+- **Navigation** (default active) - Movement controls
+- **Settings** - Application configuration
+- **Add (+)** - Plugin selector and installer
+
+**Plugin tabs (dynamically loaded):**
+- **Lists** 📋 - Position lists and planning (core plugin)
+- **Sequences** 🔄 - Automation sequences (core plugin)
+- **Drivers** 🔬 - Equipment control & protocols (CORE ENDERSCOPE)
+- **Enderman** 🤖 - AI Assistant (core plugin)
+- **[Custom]** - User-installed plugins
+
+**Tab Management:**
+- Tabs can be added/removed dynamically
+- Each plugin provides its own tab content
+- Plugin tabs can be reordered by user
+- Inactive plugins are hidden but not unloaded
+
+#### 2. Navigation Panel (DEFAULT INTERFACE)
+**Default Mode: RELATIVE with directional arrows**
+
+**Relative Mode Interface (default active):**
+- Sensitivity sliders for X, Y, Z axes
+- Lock buttons for each axis (🔓/🔒)
+- **Directional arrow pad** (prominent, center of interface):
+  ```
+      ▲
+  ◄   ▼   ►
+  ```
+- Z controls: ↑ Z ↓ (separate row)
+- XY coupling checkbox (checked by default)
+- Preset buttons (Fine/Coarse) for each axis
+
+**Absolute Mode Interface (secondary):**
+- X,Y,Z number inputs + "Go to Position" button
+- Home position buttons (🏠 XY, 🏠 XYZ)
+- Toggle to switch back to Relative
+
+**Key elements needed:**
+- Toggle between Relative/Absolute (Relative selected by default)
+- Sensitivity sliders with lock buttons
+- **Prominent directional arrow pad** (main interaction)
+- Z axis visualization panel (see below)
+
+#### 3. AI Assistant Panel
+**Enderman integration:**
+- Connection status indicator
+- Server URL input
+- Voice input button with recording animation
+- Chat/Code tabs for AI responses
+- Mute/unmute controls
+
+#### 4. Planning Panel
+**Multi-list management:**
+- Tab dropdown for list selection
+- Position management (manual/auto/XYZ modes)
+- Template system integration
+- Sequence execution controls
+
+#### 5. Center Canvas with Z Visualization
+**Main visualization:**
+- Canvas element (600x600px base size) - XY plane view
+- Position display
+- Emergency stop button
+- Scale and point count info
+
+**Z-Axis Visualization Panel (right side of canvas):**
+- **Vertical ruler/scale** showing Z position
+- **Current Z indicator** (colored dot/marker)
+- **Z range display** (min/max Z values)
+- **Z movement preview** (when using relative mode)
+- **Z history trace** (optional, last few Z positions)
+
+**Layout suggestion:**
+```
+[Canvas 600x600] [Z-Panel 60x600]
+     XY View        Z Visualization
+```
+
+**Z Panel Features:**
+- Vertical scale with mm markings
+- Current position highlighted
+- Movement preview in relative mode
+- Click-to-go Z positioning
+- Visual feedback during Z movements
+
+#### 6. Right Panel
+**Status and history:**
+- Current position display with status light
+- 3 mini-graphs for X,Y,Z history
+- Position history table
+- Track save/load controls
+
+### Critical Element IDs (Required for JavaScript)
+```javascript
+// Navigation (Relative Mode - Default)
+'relativeTab', 'absoluteTab'              // Mode toggle (relative active by default)
+'sensitivityX', 'sensitivityY', 'sensitivityZ'  // Sensitivity sliders
+'sensitivityXInput', 'sensitivityYInput', 'sensitivityZInput'  // Numeric inputs
+'lockXBtn', 'lockYBtn', 'lockZBtn'        // Lock buttons
+'lockXY'                                  // XY coupling checkbox (checked by default)
+'up', 'down', 'left', 'right'            // Main directional arrows (prominent)
+'zUp', 'zDown'                           // Z movement buttons
+
+// Navigation (Absolute Mode - Secondary)
+'inputX', 'inputY', 'inputZ', 'goToPoint' // Absolute positioning
+'homeXYBtn', 'homeXYZBtn'                 // Home buttons
+
+// Canvas & Z Visualization
+'mapCanvas'                               // Main XY canvas (600x600)
+'zVisualizationPanel'                     // Z axis visualization panel
+'zScale', 'zCurrentMarker'               // Z scale and position marker
+'zPreview'                               // Z movement preview
+'posLabel', 'emergencyStop'              // Position display and emergency stop
+
+// Dynamic Tabs
+'coreTabsContainer'                      // Core tabs (Navigation, Settings)
+'dynamicTabsContainer'                   // Plugin tabs container
+'addPluginTab'                           // Add plugin button
+
+// Plugin Content Areas
+'navigationTabContent'                   // Navigation panel content
+'settingsTabContent'                     // Settings panel content
+'listsTabContent'                        // Lists plugin content
+'sequencesTabContent'                    // Sequences plugin content
+'endermanTabContent'                     // Enderman plugin content
+
+// Status & History
+'statusLight', 'currentPos'              // Status indicator and position
+'gX', 'gY', 'gZ'                        // History graphs
+'historyTableBody'                       // Position history table
+```
+
+### Default Interface State
+```javascript
+// Default application state on startup
+const defaultState = {
+  // UI Mode
+  activeTab: 'navigation',
+  inputMode: 'relative',  // RELATIVE by default
+  
+  // Navigation defaults
+  lockXY: true,          // XY coupled by default
+  lockX: false,
+  lockY: false, 
+  lockZ: true,           // Z locked by default
+  
+  // Sensitivity defaults
+  sensitivityX: 1.0,
+  sensitivityY: 1.0,
+  sensitivityZ: 0.5,
+  
+  // Display options
+  showZVisualization: true,  // Z panel visible
+  showTargetPreview: true,   // Movement preview
+  showNavigationTrack: true, // Track history
+  
+  // Plugin states
+  activePlugins: ['lists', 'sequences', 'enderman'], // Core plugins active
+  pluginTabsVisible: true
+};
+```
+
+### Design Freedom
+**You have creative freedom for:**
+- Visual styling and colors
+- Layout implementation (Grid, Flexbox, etc.)
+- Component organization
+- Responsive behavior
+- Animations and transitions
+- Icon choices and typography
+- Z visualization design (ruler style, markers, colors)
+
+**Design Requirements:**
+- **Relative mode must be visually prominent** (default interface)
+- **Directional arrows must be large and accessible**
+- **Z visualization must be intuitive** (vertical scale)
+- **Plugin tabs must be clearly distinguishable** from core tabs
+
+**But must maintain:**
+- 3-column responsive layout with Z visualization
+- **Default relative mode interface** (arrows prominent)
+- All required functionality
+- Element IDs for JavaScript integration
+- Accessibility standards
+- **Z-axis visualization panel** beside canvas
+
+### Canvas + Z Visualization Layout
+**Recommended layout for center panel:**
+```html
+<div class="canvas-container">
+  <div class="main-canvas">
+    <canvas id="mapCanvas" width="600" height="600"></canvas>
+    <div class="canvas-overlay">
+      <div class="position-info">Position: <span id="posLabel">X:0.0 Y:0.0 Z:0.0</span></div>
+      <button id="emergencyStop">🛑 STOP</button>
+    </div>
+  </div>
+  
+  <div class="z-visualization-panel" id="zVisualizationPanel">
+    <div class="z-scale" id="zScale">
+      <!-- Z axis ruler with markings -->
+    </div>
+    <div class="z-current-marker" id="zCurrentMarker">
+      <!-- Current Z position indicator -->
+    </div>
+    <div class="z-preview" id="zPreview">
+      <!-- Z movement preview -->
+    </div>
+  </div>
+</div>
+```
+
+**Z Panel Specifications:**
+- Width: 60-80px
+- Height: Same as canvas (600px)
+- Vertical scale with mm markings
+- Current position highlighted with colored marker
+- Movement preview when using relative controls
+- Clickable for direct Z positioning
+
+## 🔌 PLUGIN SYSTEM SPECIFICATIONS
+
+### Plugin Architecture
+
+#### Plugin Manifest (plugin.json)
+```json
+{
+  "name": "lists",
+  "displayName": "Listes",
+  "version": "1.0.0",
+  "description": "Gestion des listes de positions",
+  "author": "EnderTrack Team",
+  "type": "core",
+  "icon": "📋",
+  "main": "lists.js",
+  "ui": "lists.html",
+  "styles": "lists.css",
+  "dependencies": ["canvas", "navigation"],
+  "permissions": ["canvas-write", "state-write"],
+  "api": {
+    "provides": ["addPosition", "createList", "executeSequence"],
+    "requires": ["moveAbsolute", "moveRelative"]
+  },
+  "settings": {
+    "defaultListColor": "#ff6b35",
+    "maxPositions": 1000,
+    "autoSave": true
+  }
+}
+```
+
+#### Plugin Base Class
+```javascript
+// core/plugin-manager.js
+class Plugin {
+  constructor(manifest, pluginPath) {
+    this.manifest = manifest;
+    this.path = pluginPath;
+    this.isLoaded = false;
+    this.isActive = false;
+    this.tabElement = null;
+    this.contentElement = null;
+  }
+  
+  // Plugin lifecycle methods
+  async load() {
+    // Load plugin scripts and styles
+    await this.loadAssets();
+    this.isLoaded = true;
+  }
+  
+  async activate() {
+    // Create tab and initialize plugin
+    this.createTab();
+    this.initializePlugin();
+    this.isActive = true;
+  }
+  
+  deactivate() {
+    // Hide tab and cleanup
+    if (this.tabElement) {
+      this.tabElement.style.display = 'none';
+    }
+    this.isActive = false;
+  }
+  
+  unload() {
+    // Complete cleanup
+    this.deactivate();
+    this.removeAssets();
+    this.isLoaded = false;
+  }
+  
+  // Plugin API methods
+  getAPI() {
+    return this.manifest.api.provides || [];
+  }
+  
+  getDependencies() {
+    return this.manifest.dependencies || [];
+  }
+  
+  getPermissions() {
+    return this.manifest.permissions || [];
+  }
+}
+
+class PluginManager {
+  constructor() {
+    this.plugins = new Map();
+    this.activePlugins = new Set();
+    this.pluginPaths = {
+      core: 'plugins/core-plugins/',
+      user: 'plugins/user-plugins/'
+    };
+  }
+  
+  async loadCorePlugins() {
+    const corePlugins = ['lists', 'sequences', 'drivers', 'enderman', 'settings'];
+    
+    for (const pluginName of corePlugins) {
+      await this.loadPlugin(pluginName, 'core');
+    }
+  }
+  
+  async loadPlugin(pluginName, type = 'user') {
+    try {
+      const pluginPath = `${this.pluginPaths[type]}${pluginName}/`;
+      const manifestResponse = await fetch(`${pluginPath}plugin.json`);
+      const manifest = await manifestResponse.json();
+      
+      const plugin = new Plugin(manifest, pluginPath);
+      await plugin.load();
+      
+      this.plugins.set(pluginName, plugin);
+      
+      // Auto-activate core plugins
+      if (type === 'core') {
+        await this.activatePlugin(pluginName);
+      }
+      
+      console.log(`✅ Plugin loaded: ${manifest.displayName}`);
+      return plugin;
+      
+    } catch (error) {
+      console.error(`❌ Failed to load plugin ${pluginName}:`, error);
+      return null;
+    }
+  }
+  
+  async activatePlugin(pluginName) {
+    const plugin = this.plugins.get(pluginName);
+    if (!plugin) return false;
+    
+    // Check dependencies
+    const missingDeps = this.checkDependencies(plugin);
+    if (missingDeps.length > 0) {
+      console.error(`Missing dependencies for ${pluginName}:`, missingDeps);
+      return false;
+    }
+    
+    await plugin.activate();
+    this.activePlugins.add(pluginName);
+    
+    // Update tab UI
+    this.updateTabUI();
+    
+    return true;
+  }
+  
+  deactivatePlugin(pluginName) {
+    const plugin = this.plugins.get(pluginName);
+    if (!plugin) return;
+    
+    plugin.deactivate();
+    this.activePlugins.delete(pluginName);
+    this.updateTabUI();
+  }
+  
+  checkDependencies(plugin) {
+    const missing = [];
+    for (const dep of plugin.getDependencies()) {
+      if (!this.activePlugins.has(dep)) {
+        missing.push(dep);
+      }
+    }
+    return missing;
+  }
+  
+  updateTabUI() {
+    const tabContainer = document.getElementById('dynamicTabs');
+    if (!tabContainer) return;
+    
+    // Clear existing plugin tabs
+    tabContainer.innerHTML = '';
+    
+    // Add active plugin tabs
+    for (const pluginName of this.activePlugins) {
+      const plugin = this.plugins.get(pluginName);
+      if (plugin && plugin.tabElement) {
+        tabContainer.appendChild(plugin.tabElement);
+      }
+    }
+    
+    // Add "Add Plugin" tab
+    this.createAddPluginTab();
+  }
+  
+  createAddPluginTab() {
+    const addTab = document.createElement('button');
+    addTab.className = 'mode-btn add-plugin-btn';
+    addTab.innerHTML = '➕ Add';
+    addTab.onclick = () => this.showPluginSelector();
+    
+    const tabContainer = document.getElementById('dynamicTabs');
+    tabContainer.appendChild(addTab);
+  }
+  
+  showPluginSelector() {
+    // Show modal with available plugins
+    const modal = this.createPluginSelectorModal();
+    document.body.appendChild(modal);
+  }
+  
+  createPluginSelectorModal() {
+    const modal = document.createElement('div');
+    modal.className = 'plugin-selector-modal';
+    modal.innerHTML = `
+      <div class="modal-overlay" onclick="this.parentElement.remove()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Ajouter un Plugin</h3>
+            <button class="modal-close" onclick="this.closest('.plugin-selector-modal').remove()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="plugin-categories">
+              <div class="category">
+                <h4>Plugins Disponibles</h4>
+                <div id="availablePlugins"></div>
+              </div>
+              <div class="category">
+                <h4>Installer depuis URL</h4>
+                <input type="url" id="pluginUrl" placeholder="https://example.com/plugin.zip">
+                <button onclick="EnderTrack.PluginManager.installFromUrl(document.getElementById('pluginUrl').value)">Installer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Populate available plugins
+    this.populateAvailablePlugins(modal.querySelector('#availablePlugins'));
+    
+    return modal;
+  }
+  
+  async populateAvailablePlugins(container) {
+    // List inactive plugins
+    const inactivePlugins = [];
+    for (const [name, plugin] of this.plugins) {
+      if (!this.activePlugins.has(name)) {
+        inactivePlugins.push(plugin);
+      }
+    }
+    
+    if (inactivePlugins.length === 0) {
+      container.innerHTML = '<p>Tous les plugins sont activés</p>';
+      return;
+    }
+    
+    for (const plugin of inactivePlugins) {
+      const pluginCard = document.createElement('div');
+      pluginCard.className = 'plugin-card';
+      pluginCard.innerHTML = `
+        <div class="plugin-info">
+          <span class="plugin-icon">${plugin.manifest.icon}</span>
+          <div class="plugin-details">
+            <h5>${plugin.manifest.displayName}</h5>
+            <p>${plugin.manifest.description}</p>
+            <small>v${plugin.manifest.version} by ${plugin.manifest.author}</small>
+          </div>
+        </div>
+        <button class="btn" onclick="EnderTrack.PluginManager.activatePlugin('${plugin.manifest.name}'); this.closest('.plugin-selector-modal').remove();">Activer</button>
+      `;
+      container.appendChild(pluginCard);
+    }
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.PluginManager = new PluginManager();
+```
+
+### Core Plugin Examples
+
+#### Drivers Plugin (plugins/core-plugins/drivers/drivers.js) - ENDERSCOPE CORE
+```javascript
+// Equipment Drivers Plugin - The heart of Enderscope
+class DriversPlugin {
+  constructor() {
+    this.connectedEquipment = new Map();
+    this.activeProtocol = null;
+    this.scheduler = null;
+    this.isRunning = false;
+  }
+  
+  init() {
+    this.setupUI();
+    this.initializeScheduler();
+    this.scanForEquipment();
+    this.registerAPI();
+  }
+  
+  setupUI() {
+    const content = `
+      <div class="drivers-container">
+        <!-- Equipment Connection Panel -->
+        <div class="equipment-panel">
+          <h4>🔌 Équipements Connectés</h4>
+          <div class="equipment-grid" id="equipmentGrid">
+            <div class="equipment-card" data-type="camera">
+              <span class="equipment-icon">📷</span>
+              <div class="equipment-info">
+                <h5>Caméra</h5>
+                <div class="connection-status" id="cameraStatus">Déconnecté</div>
+              </div>
+              <button onclick="this.connectEquipment('camera')">Connecter</button>
+            </div>
+            <div class="equipment-card" data-type="light-source">
+              <span class="equipment-icon">💡</span>
+              <div class="equipment-info">
+                <h5>Source Lumière</h5>
+                <div class="connection-status" id="lightStatus">Déconnecté</div>
+              </div>
+              <button onclick="this.connectEquipment('light-source')">Connecter</button>
+            </div>
+            <div class="equipment-card" data-type="temperature">
+              <span class="equipment-icon">🌡️</span>
+              <div class="equipment-info">
+                <h5>Contrôleur Température</h5>
+                <div class="connection-status" id="tempStatus">Déconnecté</div>
+              </div>
+              <button onclick="this.connectEquipment('temperature')">Connecter</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Protocol Designer -->
+        <div class="protocol-panel">
+          <h4>🧪 Protocole d'Acquisition</h4>
+          <div class="protocol-designer" id="protocolDesigner">
+            <div class="timeline" id="protocolTimeline">
+              <!-- Temporal sequence visualization -->
+            </div>
+            <div class="protocol-controls">
+              <button onclick="this.addTimePoint()">➕ Ajouter Temps</button>
+              <button onclick="this.loadProtocol()">📁 Charger</button>
+              <button onclick="this.saveProtocol()">💾 Sauver</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Execution Panel -->
+        <div class="execution-panel">
+          <h4>▶️ Exécution</h4>
+          <div class="execution-status" id="executionStatus">
+            <div class="current-step">Étape: <span id="currentStep">-</span></div>
+            <div class="progress-bar">
+              <div class="progress" id="executionProgress"></div>
+            </div>
+            <div class="time-remaining">Temps restant: <span id="timeRemaining">-</span></div>
+          </div>
+          <div class="execution-controls">
+            <button class="btn-start" onclick="this.startProtocol()">▶️ Démarrer</button>
+            <button class="btn-pause" onclick="this.pauseProtocol()">⏸️ Pause</button>
+            <button class="btn-stop" onclick="this.stopProtocol()">⏹️ Arrêter</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const tabContent = document.getElementById('driversTabContent');
+    if (tabContent) {
+      tabContent.innerHTML = content;
+    }
+  }
+  
+  initializeScheduler() {
+    this.scheduler = new ProtocolScheduler();
+    this.scheduler.onStepExecute = this.executeStep.bind(this);
+    this.scheduler.onProtocolComplete = this.onProtocolComplete.bind(this);
+  }
+  
+  async connectEquipment(type) {
+    try {
+      const driver = await this.loadEquipmentDriver(type);
+      const connected = await driver.connect();
+      
+      if (connected) {
+        this.connectedEquipment.set(type, driver);
+        this.updateEquipmentStatus(type, 'Connecté', 'connected');
+        console.log(`✅ ${type} connected`);
+      }
+    } catch (error) {
+      console.error(`❌ Failed to connect ${type}:`, error);
+      this.updateEquipmentStatus(type, 'Erreur', 'error');
+    }
+  }
+  
+  async loadEquipmentDriver(type) {
+    const driverMap = {
+      'camera': () => import('./equipment/camera.js'),
+      'light-source': () => import('./equipment/light-source.js'),
+      'temperature': () => import('./equipment/temperature.js'),
+      'stage': () => import('./equipment/stage.js')
+    };
+    
+    const driverModule = await driverMap[type]();
+    return new driverModule.default();
+  }
+  
+  async executeStep(step) {
+    console.log(`🔬 Executing step ${step.id}: ${step.name}`);
+    
+    // Execute step actions in sequence
+    for (const action of step.actions) {
+      await this.executeAction(action);
+    }
+  }
+  
+  async executeAction(action) {
+    const { type, equipment, parameters } = action;
+    const driver = this.connectedEquipment.get(equipment);
+    
+    if (!driver) {
+      throw new Error(`Equipment ${equipment} not connected`);
+    }
+    
+    switch (type) {
+      case 'move':
+        await EnderTrack.API.call('moveAbsolute', parameters.x, parameters.y, parameters.z);
+        break;
+      case 'capture':
+        await driver.capture(parameters);
+        break;
+      case 'setLight':
+        await driver.setIntensity(parameters.intensity);
+        break;
+      case 'setTemperature':
+        await driver.setTemperature(parameters.temperature);
+        break;
+      case 'wait':
+        await this.wait(parameters.duration);
+        break;
+    }
+  }
+  
+  createProtocolExample() {
+    return {
+      name: "Multi-channel Time-lapse",
+      description: "Acquisition multi-canaux avec time-lapse",
+      timePoints: [
+        {
+          id: 0,
+          name: "Initialisation",
+          time: 0,
+          actions: [
+            { type: 'connect', equipment: 'camera' },
+            { type: 'connect', equipment: 'light-source' },
+            { type: 'connect', equipment: 'temperature' },
+            { type: 'setTemperature', equipment: 'temperature', parameters: { temperature: 37 } }
+          ]
+        },
+        {
+          id: 1,
+          name: "Acquisition Position 1",
+          time: 60000, // 1 minute
+          actions: [
+            { type: 'move', parameters: { x: -20, y: -20, z: 0 } },
+            { type: 'setLight', equipment: 'light-source', parameters: { channel: 1, intensity: 80 } },
+            { type: 'capture', equipment: 'camera', parameters: { exposure: 100, filename: 'pos1_ch1.tif' } },
+            { type: 'setLight', equipment: 'light-source', parameters: { channel: 2, intensity: 60 } },
+            { type: 'capture', equipment: 'camera', parameters: { exposure: 150, filename: 'pos1_ch2.tif' } }
+          ]
+        },
+        {
+          id: 2,
+          name: "Acquisition Position 2",
+          time: 120000, // 2 minutes
+          actions: [
+            { type: 'move', parameters: { x: 20, y: 20, z: 0 } },
+            { type: 'setLight', equipment: 'light-source', parameters: { channel: 1, intensity: 80 } },
+            { type: 'capture', equipment: 'camera', parameters: { exposure: 100, filename: 'pos2_ch1.tif' } },
+            { type: 'setLight', equipment: 'light-source', parameters: { channel: 2, intensity: 60 } },
+            { type: 'capture', equipment: 'camera', parameters: { exposure: 150, filename: 'pos2_ch2.tif' } }
+          ]
+        }
+      ]
+    };
+  }
+  
+  registerAPI() {
+    window.EnderTrack.API.register('connectEquipment', this.connectEquipment.bind(this));
+    window.EnderTrack.API.register('startProtocol', this.startProtocol.bind(this));
+    window.EnderTrack.API.register('executeStep', this.executeStep.bind(this));
+  }
+}
+
+// Protocol Scheduler Class
+class ProtocolScheduler {
+  constructor() {
+    this.protocol = null;
+    this.currentStep = 0;
+    this.startTime = null;
+    this.isRunning = false;
+    this.isPaused = false;
+  }
+  
+  loadProtocol(protocol) {
+    this.protocol = protocol;
+    this.currentStep = 0;
+  }
+  
+  async start() {
+    if (!this.protocol) return false;
+    
+    this.isRunning = true;
+    this.startTime = Date.now();
+    
+    for (let i = 0; i < this.protocol.timePoints.length; i++) {
+      if (!this.isRunning) break;
+      
+      const timePoint = this.protocol.timePoints[i];
+      const waitTime = timePoint.time - (Date.now() - this.startTime);
+      
+      if (waitTime > 0) {
+        await this.wait(waitTime);
+      }
+      
+      if (this.onStepExecute) {
+        await this.onStepExecute(timePoint);
+      }
+      
+      this.currentStep = i + 1;
+    }
+    
+    this.isRunning = false;
+    if (this.onProtocolComplete) {
+      this.onProtocolComplete();
+    }
+  }
+  
+  pause() {
+    this.isPaused = true;
+  }
+  
+  resume() {
+    this.isPaused = false;
+  }
+  
+  stop() {
+    this.isRunning = false;
+    this.isPaused = false;
+  }
+  
+  wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.Plugins = window.EnderTrack.Plugins || {};
+window.EnderTrack.Plugins.Drivers = new DriversPlugin();
+```
+
+#### Lists Plugin (plugins/core-plugins/lists/lists.js)
+```javascript
+// Lists plugin implementation
+class ListsPlugin {
+  constructor() {
+    this.lists = [];
+    this.activeListId = null;
+  }
+  
+  init() {
+    this.setupUI();
+    this.registerAPI();
+  }
+  
+  setupUI() {
+    // Create lists interface
+    const content = `
+      <div class="lists-container">
+        <div class="list-header">
+          <select id="listSelector"></select>
+          <button onclick="this.createNewList()">➕ Nouvelle</button>
+        </div>
+        <div class="list-content" id="listContent"></div>
+        <div class="list-actions">
+          <button onclick="this.executeList()">▶️ Exécuter</button>
+          <button onclick="this.saveList()">💾 Sauver</button>
+          <button onclick="this.loadList()">📁 Charger</button>
+        </div>
+      </div>
+    `;
+    
+    const tabContent = document.getElementById('listsTabContent');
+    if (tabContent) {
+      tabContent.innerHTML = content;
+    }
+  }
+  
+  registerAPI() {
+    // Register plugin API functions
+    window.EnderTrack.API.register('addPosition', this.addPosition.bind(this));
+    window.EnderTrack.API.register('createList', this.createNewList.bind(this));
+    window.EnderTrack.API.register('executeList', this.executeList.bind(this));
+  }
+  
+  addPosition(x, y, z, name = null) {
+    const activeList = this.getActiveList();
+    if (!activeList) return false;
+    
+    activeList.positions.push({
+      x: Number(x),
+      y: Number(y), 
+      z: Number(z),
+      name: name || `Position ${activeList.positions.length + 1}`,
+      timestamp: Date.now()
+    });
+    
+    this.updateListDisplay();
+    return true;
+  }
+  
+  createNewList(name = null) {
+    const listName = name || `Liste ${this.lists.length + 1}`;
+    const newList = {
+      id: Date.now(),
+      name: listName,
+      positions: [],
+      color: this.generateRandomColor(),
+      created: Date.now()
+    };
+    
+    this.lists.push(newList);
+    this.activeListId = newList.id;
+    this.updateListSelector();
+    this.updateListDisplay();
+    
+    return newList.id;
+  }
+  
+  async executeList() {
+    const activeList = this.getActiveList();
+    if (!activeList || activeList.positions.length === 0) return;
+    
+    for (const position of activeList.positions) {
+      await EnderTrack.API.call('moveAbsolute', position.x, position.y, position.z);
+      await this.wait(1000); // Wait 1 second between moves
+    }
+  }
+  
+  getActiveList() {
+    return this.lists.find(list => list.id === this.activeListId);
+  }
+  
+  generateRandomColor() {
+    const colors = ['#ff6b35', '#f7931e', '#ffd23f', '#06d6a0', '#118ab2', '#073b4c'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+  
+  wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+// Initialize plugin when loaded
+if (typeof window !== 'undefined') {
+  window.EnderTrack = window.EnderTrack || {};
+  window.EnderTrack.Plugins = window.EnderTrack.Plugins || {};
+  window.EnderTrack.Plugins.Lists = new ListsPlugin();
+}
+```
+
+### Script Loading Order (Critical)
+```html
+<!-- Core System -->
+<script src="modules/state/state.js"></script>
+<script src="modules/utils/math.js"></script>
+<script src="modules/utils/graphics.js"></script>
+<script src="modules/utils/events.js"></script>
+<script src="modules/utils/validation.js"></script>
+
+<!-- Canvas System -->
+<script src="modules/canvas/coordinates.js"></script>
+<script src="modules/canvas/canvas.js"></script>
+<script src="modules/canvas/renderer.js"></script>
+<script src="modules/canvas/interactions.js"></script>
+
+<!-- Navigation System -->
+<script src="modules/navigation/movement.js"></script>
+<script src="modules/navigation/positioning.js"></script>
+<script src="modules/navigation/controls.js"></script>
+<script src="modules/navigation/keyboard.js"></script>
+
+<!-- UI System -->
+<script src="modules/ui/notifications.js"></script>
+<script src="modules/ui/modals.js"></script>
+<script src="modules/ui/controls.js"></script>
+<script src="modules/ui/panels.js"></script>
+<script src="modules/ui/tabs.js"></script>
+
+<!-- Core Application -->
+<script src="core/plugin-manager.js"></script>
+<script src="core/renderer.js"></script>
+<script src="core/coordinator.js"></script>
+<script src="core/api.js"></script>
+<script src="core/app.js"></script>
+
+<!-- Bootstrap -->
+<script src="main.js"></script>
+
+<!-- Plugins loaded dynamically by PluginManager -->
+```cript src="core/renderer.js"></script>
+<script src="core/coordinator.js"></script>
+<script src="core/api.js"></script>
+<script src="core/app.js"></script>
+
+<!-- Bootstrap -->
+<script src="main.js"></script>
+```
+```
+
+## 🎨 STYLING GUIDELINES
+
+### Design System
+**Color Palette (suggested):**
+```css
+:root {
+  --primary: #0b84ff;      /* Main accent */
+  --background: #f6f8fb;   /* App background */
+  --panel: #ffffff;        /* Panel background */
+  --text: #111111;         /* Primary text */
+  --muted: #666666;        /* Secondary text */
+  --success: #10b981;      /* Success states */
+  --warning: #f59e0b;      /* Warning states */
+  --danger: #ef4444;       /* Error/stop states */
+}
+```
+
+### Layout Requirements
+**Responsive Grid:**
+- Desktop: 400px | 1fr | 250px
+- Tablet: Stack vertically or adjust ratios
+- Mobile: Single column
+
+**Key Visual Elements:**
+- Canvas: Dark background (#2d3748 or similar)
+- Cards: Subtle shadows and rounded corners
+- Buttons: Clear hierarchy (primary/secondary/ghost)
+- Status indicators: Color-coded (green=ready, orange=moving, red=error)
+
+### Component Styling Freedom
+**You can customize:**
+- Typography (fonts, sizes, weights)
+- Spacing and padding
+- Border radius and shadows
+- Color scheme (while maintaining contrast)
+- Animations and transitions
+- Icon styles and placement
+
+**Must maintain:**
+- Clear visual hierarchy
+- Accessibility (contrast ratios, focus states)
+- Responsive behavior
+- Professional appearance suitable for laboratory use
+
+## 📊 EXACT STATE STRUCTURE
+
+```javascript
+const state = {
+  // Map configuration
+  mapSizeMm: 200,
+  canvasPx: {w: 800, h: 600},
+  
+  // Position tracking
+  pos: {x: 0, y: 0, z: 0},
+  track: [],
+  positionHistory: [],
+  
+  // UI modes
+  clickMode: 'navigate',
+  inputMode: 'relative',
+  leftPanelMode: 'navigation',
+  
+  // Display options
+  showNavigationTrack: true,
+  showTargetPreview: true,
+  
+  // Axis controls
+  lockXY: true,
+  lockX: false,
+  lockY: false,
+  lockZ: true,
+  
+  // Interaction settings
+  enableClickGo: false,
+  enableMapInteraction: true,
+  
+  // Visual settings
+  colors: {
+    mapBackground: '#2d3748',
+    gridColor: '#4a5568'
+  },
+  
+  // Control ranges
+  sliderMin: 0.01,
+  sliderMax: 200,
+  
+  // Movement presets
+  stepPresets: {
+    fine: 0.1,
+    coarse: 5
+  },
+  
+  // Home positions
+  homePositions: {
+    xyz: {x: 0, y: 0, z: 0},
+    xy: {x: 0, y: 0}
+  },
+  
+  // UI button visibility
+  showButtons: {
+    homeXYZ: false,
+    homeXY: true,
+    presetButtons: true,
+    resetTrack: true
+  },
+  
+  // Movement settings
+  xyzSameStep: false,
+  isMoving: false,
+  moveSpeed: 50,
+  animationId: null,
+  
+  // Sequence control
+  sequenceQueue: [],
+  sequenceIndex: 0,
+  
+  // Tab management
+  tabs: [{
+    id: 1,
+    name: 'Liste 1',
+    type: 'manual',
+    color: '#ff6b35',
+    visible: true,
+    positions: [],
+    showTrack: false,
+    showPreview: false,
+    svgOverlay: null,
+    svgOpacity: 0.5,
+    selectedTemplate: null,
+    showTemplateControls: false,
+    templates: []
+  }],
+  activeTab: 1,
+  nextTabId: 2,
+  
+  // Map interaction
+  panX: 0,
+  panY: 0,
+  zoom: 1,
+  isDragging: false,
+  lastMouseX: 0,
+  lastMouseY: 0,
+  
+  // Grid and template interaction
+  gridOffsetX: 0,
+  gridOffsetY: 0,
+  isDraggingGrid: false,
+  wasPanning: false,
+  selectedTemplateIndex: -1,
+  
+  // Keyboard controls
+  keyboardShortcuts: {
+    up: 'ArrowUp',
+    down: 'ArrowDown',
+    left: 'ArrowLeft',
+    right: 'ArrowRight',
+    zUp: 'PageUp',
+    zDown: 'PageDown'
+  },
+  
+  // AI integration
+  aiAgent: {
+    serverUrl: '',
+    isConnected: false,
+    isProcessing: false,
+    lastCommand: null
+  }
+};
+```
+
+## 🏗️ NEW MODULAR ARCHITECTURE BENEFITS
+
+### Why This Architecture is Better:
+
+1. **True Separation of Concerns**
+   - Each module has ONE responsibility
+   - No mixed logic between rendering/UI/business
+   - Clear dependencies and interfaces
+
+2. **Minimal Bootstrap (main.js)**
+   ```javascript
+   // main.js - Only 30 lines!
+   document.addEventListener('DOMContentLoaded', () => {
+     // Initialize core systems
+     EnderTrack.State.init();
+     EnderTrack.Canvas.init();
+     EnderTrack.UI.init();
+     
+     // Start application
+     EnderTrack.App.start();
+     
+     // Setup error handling
+     window.addEventListener('error', EnderTrack.App.handleError);
+   });
+   ```
+
+3. **Organized Module Structure**
+   - **state/** - Pure state management, no UI
+   - **canvas/** - Pure rendering, no business logic
+   - **navigation/** - Movement logic only
+   - **planning/** - Planning features only
+   - **templates/** - Template system only
+   - **ai/** - AI integration only
+   - **ui/** - Pure UI components
+   - **utils/** - Reusable utilities
+
+4. **Core Coordination**
+   - **core/app.js** - Application lifecycle
+   - **core/renderer.js** - Main rendering coordinator
+   - **core/coordinator.js** - Module communication
+   - **core/api.js** - External API interface
+
+5. **Clear Loading Order**
+   - Utils first (no dependencies)
+   - Core systems (state, canvas, etc.)
+   - Feature modules (navigation, planning, etc.)
+   - UI components
+   - Application coordinator
+   - Bootstrap
+
+### Module Communication Pattern:
+```javascript
+// Instead of direct calls, use events:
+EnderTrack.Events.emit('position:changed', {x, y, z});
+EnderTrack.Events.on('position:changed', (pos) => {
+  EnderTrack.Canvas.updatePosition(pos);
+  EnderTrack.UI.updateDisplay(pos);
+});
+```
+
+## 🔧 CORE ALGORITHMS
+
+### Canvas Coordinate Transformations
+```javascript
+function pxPerMm() {
+  return Math.min(mapCanvas.width, mapCanvas.height) / state.mapSizeMm;
+}
+
+function mapToCanvas(mapX, mapY) {
+  const centerX = mapCanvas.width / 2;
+  const centerY = mapCanvas.height / 2;
+  const scale = pxPerMm() * state.zoom;
+  
+  return {
+    cx: centerX + (mapX * scale) + state.panX,
+    cy: centerY - (mapY * scale) + state.panY
+  };
+}
+
+function canvasToMap(canvasX, canvasY) {
+  const rect = mapCanvas.getBoundingClientRect();
+  const x = (canvasX - rect.left) * (mapCanvas.width / rect.width);
+  const y = (canvasY - rect.top) * (mapCanvas.height / rect.height);
+  
+  const centerX = mapCanvas.width / 2;
+  const centerY = mapCanvas.height / 2;
+  const scale = pxPerMm() * state.zoom;
+  
+  return {
+    x: (x - centerX - state.panX) / scale,
+    y: -(y - centerY - state.panY) / scale
+  };
+}
+```
+
+### Movement Functions
+```javascript
+function moveAbsolute(x, y, z) {
+  if (state.isMoving) return;
+  
+  state.isMoving = true;
+  const startPos = {...state.pos};
+  const targetPos = {x: Number(x), y: Number(y), z: Number(z)};
+  const distance = Math.sqrt(
+    Math.pow(targetPos.x - startPos.x, 2) + 
+    Math.pow(targetPos.y - startPos.y, 2) + 
+    Math.pow(targetPos.z - startPos.z, 2)
+  );
+  
+  const duration = (distance / state.moveSpeed) * 1000;
+  const startTime = Date.now();
+  
+  function animate() {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Smooth easing
+    const eased = 1 - Math.pow(1 - progress, 3);
+    
+    state.pos.x = startPos.x + (targetPos.x - startPos.x) * eased;
+    state.pos.y = startPos.y + (targetPos.y - startPos.y) * eased;
+    state.pos.z = startPos.z + (targetPos.z - startPos.z) * eased;
+    
+    redraw();
+    
+    if (progress < 1) {
+      state.animationId = requestAnimationFrame(animate);
+    } else {
+      state.isMoving = false;
+      state.pos = targetPos;
+      recordStop();
+      redraw();
+    }
+  }
+  
+  animate();
+}
+
+function moveRelative(dx, dy, dz) {
+  const newX = state.pos.x + Number(dx);
+  const newY = state.pos.y + Number(dy);
+  const newZ = state.pos.z + Number(dz);
+  moveAbsolute(newX, newY, newZ);
+}
+```
+
+## 🤖 AI INTEGRATION WITH MAMMOUTH.AI
+
+### Python AI Agent (server/ai-agent.py)
+```python
+#!/usr/bin/env python3
+import http.server
+import socketserver
+import json
+import urllib.request
+import urllib.parse
+from datetime import datetime
+import os
+
+class MammouthHandler(http.server.BaseHTTPRequestHandler):
+    # Context memory for conversation
+    context_memory = {
+        'last_sensitivity_value': 4,
+        'last_speed': 50,
+        'last_position': {'x': 0, 'y': 0, 'z': 0},
+        'conversation_history': []
+    }
+    
+    def load_api_db(self):
+        """Load JavaScript API database"""
+        try:
+            with open('endertrack-api.json', 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return {"functions": {}, "variables": {}, "patterns": {}}
+    
+    def do_GET(self):
+        if self.path == '/status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            response = {
+                'service': 'Mammouth.ai Bridge',
+                'timestamp': datetime.now().isoformat(),
+                'status': 'running'
+            }
+            self.wfile.write(json.dumps(response).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
+    def do_POST(self):
+        if self.path == '/ask':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                prompt = data.get('prompt', '').lower().strip()
+                
+                # Process command with Mammouth.ai
+                result = self.ask_mammouth(prompt)
+                
+                # Execute commands if they exist
+                if result.get('success') and result.get('commands'):
+                    for cmd in result.get('commands', []):
+                        print(f"⚡ [EXEC] Executing: {cmd}")
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+                
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                error_response = {'error': str(e)}
+                self.wfile.write(json.dumps(error_response).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+    
+    def ask_mammouth(self, prompt):
+        """Ask Mammouth.ai to understand the command"""
+        print(f"🤖 [MAMMOUTH] Received prompt: '{prompt}'")
+        
+        try:
+            # REPLACE WITH YOUR MAMMOUTH.AI API KEY
+            api_key = "sk-YOUR-MAMMOUTH-API-KEY-HERE"
+            url = "https://api.mammouth.ai/v1/chat/completions"
+            
+            system_prompt = f"""Tu es Enderman, expert EnderTrack et programmeur JavaScript. 
+            
+API DISPONIBLE: {self.load_api_db()}
+            
+TEMPLATES SVG: lame_microscope, microplate_96, petri_35mm, petri_90mm, ibidi_8well
+            
+Réponds en JSON: {{"success": true, "message": "description", "commands": [{{"action": "moveRelative", "dx": 0, "dy": 0, "dz": 0}}]}}
+            
+ACTIONS:
+            - moveRelative: déplacement relatif (dx, dy, dz en mm)
+            - moveAbsolute: aller à position absolue (x, y, z en mm)
+            - goHome: retour origine (mode: "xy" ou "xyz")
+            - setSensitivity: changer sensibilité (axis: "x"|"y"|"z"|"xy", value: nombre)
+            - addPosition: ajouter position (x, y, z)
+            - addTemplate: ajouter template (name, x, y, displayName)
+            - createNewList: créer nouvelle liste
+            - goToAll: exécuter toutes les positions
+            - repeatLast: répéter dernière commande
+            
+COORDONNEES: Origine (0,0) = CENTRE du plateau. Limites: -100 à +100mm
+            
+EXEMPLES:
+            "va à gauche" → {{"success": true, "message": "Je vais à gauche", "commands": [{{"action": "moveRelative", "dx": -10, "dy": 0, "dz": 0}}]}}
+            "3 lames microscope" → créer liste + 3 templates lame_microscope à positions différentes
+            "exécute" → {{"success": true, "message": "Exécution", "commands": [{{"action": "goToAll"}}]}}
+            """
+            
+            data = {
+                "model": "gpt-4.1-mini",
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"CONTEXTE: {self.context_memory}. PROMPT: {prompt}"}
+                ],
+                "temperature": 0.1
+            }
+            
+            print(f"🌐 [MAMMOUTH] Sending request to {url}")
+            
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(data).encode('utf-8'),
+                headers={
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                }
+            )
+            
+            with urllib.request.urlopen(req, timeout=10) as response:
+                print(f"✅ [MAMMOUTH] Response received (status: {response.status})")
+                result = json.loads(response.read().decode('utf-8'))
+                
+                # Log costs if available
+                if 'usage' in result:
+                    usage = result['usage']
+                    total_tokens = usage.get('total_tokens', 0)
+                    print(f"💰 [COST] Tokens: {total_tokens}")
+                
+                content = result['choices'][0]['message']['content']
+                print(f"📝 [MAMMOUTH] Raw content: {content}")
+                
+                # Parse Mammouth's JSON response
+                try:
+                    parsed = json.loads(content)
+                    print(f"🎯 [MAMMOUTH] JSON parsed successfully: {parsed}")
+                    
+                    # Update memory with new values
+                    self.update_context_memory(parsed)
+                    
+                    return parsed
+                except Exception as parse_error:
+                    print(f"⚠️ [MAMMOUTH] JSON parsing error: {parse_error}")
+                    return self.parse_fallback(prompt, content)
+                    
+        except Exception as e:
+            print(f"❌ [MAMMOUTH] API error: {e}")
+            return self.parse_fallback(prompt, str(e))
+    
+    def update_context_memory(self, parsed_response):
+        """Update context memory with command results"""
+        if parsed_response.get('commands'):
+            for cmd in parsed_response['commands']:
+                if cmd.get('action') == 'setSensitivity':
+                    self.context_memory['last_sensitivity_value'] = cmd.get('value', 1)
+                elif cmd.get('action') == 'setSpeed':
+                    self.context_memory['last_speed'] = cmd.get('speed', 50)
+                elif cmd.get('action') in ['moveAbsolute', 'moveRelative']:
+                    if 'x' in cmd: self.context_memory['last_position']['x'] = cmd['x']
+                    if 'y' in cmd: self.context_memory['last_position']['y'] = cmd['y']
+                    if 'z' in cmd: self.context_memory['last_position']['z'] = cmd['z']
+        
+        # Add to conversation history
+        self.context_memory['conversation_history'].append({
+            'response': parsed_response['message'],
+            'commands': parsed_response.get('commands', [])
+        })
+        
+        # Limit history to 5 items
+        if len(self.context_memory['conversation_history']) > 5:
+            self.context_memory['conversation_history'].pop(0)
+    
+    def parse_fallback(self, prompt, error_msg=""):
+        """Local fallback if Mammouth fails"""
+        print(f"🔧 [FALLBACK] Local parsing for: '{prompt}'")
+        prompt = prompt.lower().strip()
+        
+        # Simple movement commands
+        if 'gauche' in prompt or 'left' in prompt:
+            return {
+                'success': True,
+                'message': 'Je vais à gauche (fallback local)',
+                'commands': [{'action': 'moveRelative', 'dx': -10, 'dy': 0, 'dz': 0}]
+            }
+        elif 'droite' in prompt or 'right' in prompt:
+            return {
+                'success': True,
+                'message': 'Je vais à droite (fallback local)',
+                'commands': [{'action': 'moveRelative', 'dx': 10, 'dy': 0, 'dz': 0}]
+            }
+        elif 'haut' in prompt or 'up' in prompt:
+            return {
+                'success': True,
+                'message': 'Je vais en haut (fallback local)',
+                'commands': [{'action': 'moveRelative', 'dx': 0, 'dy': 10, 'dz': 0}]
+            }
+        elif 'bas' in prompt or 'down' in prompt:
+            return {
+                'success': True,
+                'message': 'Je vais en bas (fallback local)',
+                'commands': [{'action': 'moveRelative', 'dx': 0, 'dy': -10, 'dz': 0}]
+            }
+        elif 'origine' in prompt or 'home' in prompt:
+            return {
+                'success': True,
+                'message': 'Retour à l\'origine (fallback local)',
+                'commands': [{'action': 'goHome', 'mode': 'xy'}]
+            }
+        else:
+            return {
+                'success': True,
+                'message': 'Salut ! Je suis Enderman. Essayez: "va à gauche", "3 lames microscope", "origine"',
+                'commands': []
+            }
+
+if __name__ == '__main__':
+    PORT = 3002
+    with socketserver.TCPServer(("", PORT), MammouthHandler) as httpd:
+        print(f"🤖 Mammouth Bridge running on http://localhost:{PORT}")
+        print("✅ Ready to receive EnderTrack commands")
+        print("⚠️ Don't forget to set your Mammouth.ai API key!")
+        httpd.serve_forever()
+```
+
+### Configuration Requirements
+
+**1. API Key Setup:**
+```python
+# In server/ai-agent.py, replace:
+api_key = "sk-YOUR-MAMMOUTH-API-KEY-HERE"
+# With your actual Mammouth.ai API key
+```
+
+**2. Server Configuration:**
+```json
+// config.json
+{
+  "ai": {
+    "provider": "mammouth",
+    "apiUrl": "https://api.mammouth.ai/v1",
+    "model": "gpt-4.1-mini",
+    "serverPort": 3002,
+    "timeout": 10
+  }
+}
+```
+
+**3. JavaScript AI Integration:**
+```javascript
+// modules/ai/agent.js
+class AIAgent {
+  constructor() {
+    this.serverUrl = 'http://localhost:3002';
+    this.isConnected = false;
+  }
+  
+  async connect() {
+    try {
+      const response = await fetch(`${this.serverUrl}/status`);
+      if (response.ok) {
+        this.isConnected = true;
+        this.updateStatus('connected');
+        return true;
+      }
+    } catch (error) {
+      this.isConnected = false;
+      this.updateStatus('disconnected');
+      return false;
+    }
+  }
+  
+  async sendCommand(prompt) {
+    if (!this.isConnected) {
+      throw new Error('AI agent not connected');
+    }
+    
+    const context = {
+      currentPosition: EnderTrack.State.get().pos,
+      currentSensitivity: this.getCurrentSensitivity(),
+      mapSize: EnderTrack.State.get().mapSizeMm
+    };
+    
+    const response = await fetch(`${this.serverUrl}/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, context })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`AI request failed: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    // Execute commands
+    if (result.success && result.commands) {
+      await this.executeCommands(result.commands);
+    }
+    
+    return result;
+  }
+  
+  async executeCommands(commands) {
+    for (const cmd of commands) {
+      switch (cmd.action) {
+        case 'moveAbsolute':
+          EnderTrack.Movement.moveAbsolute(cmd.x, cmd.y, cmd.z);
+          break;
+        case 'moveRelative':
+          EnderTrack.Movement.moveRelative(cmd.dx, cmd.dy, cmd.dz);
+          break;
+        case 'goHome':
+          EnderTrack.Navigation.goHome(cmd.mode || 'xy');
+          break;
+        case 'setSensitivity':
+          EnderTrack.Navigation.setSensitivity(cmd.axis, cmd.value);
+          break;
+        case 'addPosition':
+          EnderTrack.Planning.addPosition(cmd.x, cmd.y, cmd.z);
+          break;
+        case 'goToAll':
+          EnderTrack.Planning.executeSequence();
+          break;
+      }
+    }
+  }
+  
+  getCurrentSensitivity() {
+    return {
+      x: document.getElementById('sensitivityX')?.value || 1,
+      y: document.getElementById('sensitivityY')?.value || 1,
+      z: document.getElementById('sensitivityZ')?.value || 1
+    };
+  }
+  
+  updateStatus(status) {
+    const statusEl = document.getElementById('aiStatus');
+    if (statusEl) {
+      statusEl.className = status === 'connected' ? 'connected' : 'disconnected';
+    }
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.AI = new AIAgent();
+```
+
+## 📐 TEMPLATE SYSTEM
+
+### Template Structure
+Each template consists of:
+1. **SVG file** - Visual representation
+2. **JSON file** - Position coordinates
+3. **Embedded definitions** in templates.js
+
+### Example Template Files
+
+**petri_35mm.svg:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="35mm" height="35mm" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="17.5" cy="17.5" r="17.5" fill="none" stroke="#666" stroke-width="0.2" opacity="0.7"/>
+  <text x="17.5" y="19" text-anchor="middle" font-size="2" fill="#666" opacity="0.8">Petri 35mm</text>
+</svg>
+```
+
+**petri_35mm.json:**
+```json
+[
+  {"x": 0, "y": 0, "z": 0}
+]
+```
+
+**microplate_96.json:**
+```json
+[
+  {"x": -49.5, "y": 31.5, "z": 0}, {"x": -40.5, "y": 31.5, "z": 0}, {"x": -31.5, "y": 31.5, "z": 0},
+  {"x": -22.5, "y": 31.5, "z": 0}, {"x": -13.5, "y": 31.5, "z": 0}, {"x": -4.5, "y": 31.5, "z": 0},
+  {"x": 4.5, "y": 31.5, "z": 0}, {"x": 13.5, "y": 31.5, "z": 0}, {"x": 22.5, "y": 31.5, "z": 0},
+  {"x": 31.5, "y": 31.5, "z": 0}, {"x": 40.5, "y": 31.5, "z": 0}, {"x": 49.5, "y": 31.5, "z": 0}
+]
+```
+
+## 📦 DEPENDENCIES
+
+### package.json
+```json
+{
+  "name": "endertrack-ai-server",
+  "version": "1.0.0",
+  "description": "AI server for EnderTrack",
+  "main": "ai-server.js",
+  "scripts": {
+    "start": "node ai-server.js",
+    "dev": "nodemon ai-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+```
+
+### requirements.txt
+```
+Flask==2.3.3
+Flask-CORS==4.0.0
+requests==2.31.0
+speech-recognition==3.10.0
+pydub==0.25.1
+whisper==1.1.10
+```
+
+## 🚀 IMPLEMENTATION CHECKLIST
+
+### Phase 1: Core Structure
+- [ ] Create exact HTML structure with 3-column grid layout
+- [ ] Implement CSS with exact styling and responsive design
+- [ ] Set up modular JavaScript architecture with proper loading order
+- [ ] Initialize central state management system
+
+### Phase 2: Canvas System
+- [ ] Implement canvas rendering with exact coordinate transformations
+- [ ] Add grid drawing with proper scaling
+- [ ] Implement zoom and pan functionality
+- [ ] Add position markers and tracking visualization
+
+### Phase 3: Navigation System
+- [ ] Implement absolute positioning with input validation
+- [ ] Add relative movement with sensitivity controls
+- [ ] Create directional arrow controls
+- [ ] Add keyboard navigation support
+
+### Phase 4: Planning System
+- [ ] Implement tab management with dropdown interface
+- [ ] Add position list management (manual, auto, XYZ modes)
+- [ ] Create template system with SVG overlay support
+- [ ] Implement template editor with drag/drop functionality
+
+### Phase 5: AI Integration
+- [ ] Set up Python Flask agent with Ollama integration
+- [ ] Implement voice recognition system
+- [ ] Add text-to-speech with Google TTS fallback
+- [ ] Create command processing and execution system
+
+### Phase 6: Advanced Features
+- [ ] Add position history and graphing
+- [ ] Implement save/load functionality
+- [ ] Create emergency stop system
+- [ ] Add sequence execution for multiple positions
+
+### Critical Implementation Notes:
+
+1. **Script Loading Order**: State.js MUST load first, then modules, then main
+2. **Canvas Coordinates**: Use exact transformations with proper scaling
+3. **Event Handling**: Prevent conflicts between mouse/keyboard events
+4. **AI Communication**: Handle timeouts and fallbacks gracefully
+5. **Template System**: Ensure SVG loading and positioning accuracy
+6. **State Management**: Maintain consistency across all modules
+7. **Error Handling**: Implement robust error recovery
+8. **Performance**: Use requestAnimationFrame for smooth animations
+
+## 📝 EXAMPLE MODULE IMPLEMENTATIONS
+
+### main.js (Minimal Bootstrap)
+```javascript
+// main.js - Ultra-minimal entry point
+class EnderTrackBootstrap {
+  static async init() {
+    try {
+      // Initialize core systems in order
+      await EnderTrack.State.init();
+      await EnderTrack.Canvas.init('mapCanvas');
+      await EnderTrack.UI.init();
+      
+      // Start application
+      EnderTrack.App.start();
+      
+      console.log('✅ EnderTrack initialized successfully');
+    } catch (error) {
+      console.error('❌ EnderTrack initialization failed:', error);
+      EnderTrack.UI.showError('Application failed to start');
+    }
+  }
+}
+
+// Auto-start when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', EnderTrackBootstrap.init);
+} else {
+  EnderTrackBootstrap.init();
+}
+```
+
+### core/app.js (Application Controller)
+```javascript
+// core/app.js - Application lifecycle management
+class EnderTrackApp {
+  static start() {
+    // Initialize all subsystems
+    this.initializeSubsystems();
+    
+    // Setup global event handlers
+    this.setupGlobalEvents();
+    
+    // Start render loop
+    this.startRenderLoop();
+  }
+  
+  static initializeSubsystems() {
+    EnderTrack.Navigation.init();
+    EnderTrack.Planning.init();
+    EnderTrack.Templates.init();
+    EnderTrack.AI.init();
+  }
+  
+  static setupGlobalEvents() {
+    // Emergency stop
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.emergencyStop();
+    });
+    
+    // State changes trigger renders
+    EnderTrack.Events.on('state:changed', () => {
+      EnderTrack.Renderer.requestRender();
+    });
+  }
+  
+  static emergencyStop() {
+    EnderTrack.Navigation.stop();
+    EnderTrack.Planning.stopSequence();
+    EnderTrack.AI.stop();
+    EnderTrack.UI.showNotification('Emergency stop activated', 'error');
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.App = EnderTrackApp;
+```
+
+### modules/canvas/renderer.js (Pure Rendering)
+```javascript
+// modules/canvas/renderer.js - Pure rendering functions
+class CanvasRenderer {
+  static render(ctx, state) {
+    // Clear canvas
+    this.clear(ctx);
+    
+    // Render in layers
+    this.renderBackground(ctx, state);
+    this.renderGrid(ctx, state);
+    this.renderTemplates(ctx, state);
+    this.renderPositions(ctx, state);
+    this.renderCurrentPosition(ctx, state);
+    this.renderUI(ctx, state);
+  }
+  
+  static clear(ctx) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+  
+  static renderBackground(ctx, state) {
+    ctx.fillStyle = state.colors.mapBackground;
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+  
+  static renderCurrentPosition(ctx, state) {
+    const coords = EnderTrack.Coordinates.mapToCanvas(state.pos.x, state.pos.y);
+    
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(11,132,255,0.12)';
+    ctx.strokeStyle = '#064f9a';
+    ctx.lineWidth = 2;
+    ctx.arc(coords.cx, coords.cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.CanvasRenderer = CanvasRenderer;
+```
+
+### modules/navigation/movement.js (Pure Movement Logic)
+```javascript
+// modules/navigation/movement.js - Movement calculations only
+class MovementEngine {
+  static moveAbsolute(targetX, targetY, targetZ) {
+    const state = EnderTrack.State.get();
+    
+    if (state.isMoving) return false;
+    
+    const movement = this.calculateMovement(
+      state.pos, 
+      {x: targetX, y: targetY, z: targetZ}, 
+      state.moveSpeed
+    );
+    
+    this.executeMovement(movement);
+    return true;
+  }
+  
+  static calculateMovement(start, target, speed) {
+    const distance = Math.sqrt(
+      Math.pow(target.x - start.x, 2) + 
+      Math.pow(target.y - start.y, 2) + 
+      Math.pow(target.z - start.z, 2)
+    );
+    
+    return {
+      start,
+      target,
+      distance,
+      duration: (distance / speed) * 1000,
+      startTime: Date.now()
+    };
+  }
+  
+  static executeMovement(movement) {
+    EnderTrack.State.update({isMoving: true});
+    
+    const animate = () => {
+      const elapsed = Date.now() - movement.startTime;
+      const progress = Math.min(elapsed / movement.duration, 1);
+      const eased = this.easeInOutCubic(progress);
+      
+      const currentPos = {
+        x: movement.start.x + (movement.target.x - movement.start.x) * eased,
+        y: movement.start.y + (movement.target.y - movement.start.y) * eased,
+        z: movement.start.z + (movement.target.z - movement.start.z) * eased
+      };
+      
+      EnderTrack.State.update({pos: currentPos});
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        this.completeMovement(movement.target);
+      }
+    };
+    
+    animate();
+  }
+  
+  static completeMovement(finalPos) {
+    EnderTrack.State.update({
+      pos: finalPos,
+      isMoving: false
+    });
+    
+    EnderTrack.Events.emit('movement:completed', finalPos);
+  }
+  
+  static easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.Movement = MovementEngine;
+```
+
+## 🎤 VOICE INTEGRATION - TTS & TRANSCRIPTION
+
+### Google Text-to-Speech Service (server/voice-service.py)
+```python
+#!/usr/bin/env python3
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+import os
+import tempfile
+import logging
+from gtts import gTTS
+import io
+import speech_recognition as sr
+from pydub import AudioSegment
+
+app = Flask(__name__)
+CORS(app)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Supported voices for Google TTS
+SUPPORTED_VOICES = {
+    'fr': 'Français (France)',
+    'fr-ca': 'Français (Canada)', 
+    'en': 'English (US)',
+    'en-uk': 'English (UK)',
+    'en-au': 'English (Australia)',
+    'es': 'Español (España)',
+    'de': 'Deutsch (Deutschland)',
+    'it': 'Italiano (Italia)',
+    'pt': 'Português (Brasil)'
+}
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'Google TTS & Voice Recognition Service',
+        'supported_voices': SUPPORTED_VOICES,
+        'features': ['tts', 'transcription']
+    })
+
+@app.route('/tts', methods=['POST'])
+def text_to_speech():
+    """Text-to-speech endpoint"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'text' not in data:
+            return jsonify({'error': 'Text required'}), 400
+            
+        text = data['text'].strip()
+        voice = data.get('voice', 'fr')
+        
+        if not text:
+            return jsonify({'error': 'Empty text'}), 400
+            
+        if voice not in SUPPORTED_VOICES:
+            voice = 'fr'  # Fallback to French
+            
+        logger.info(f"TTS Generation: '{text[:50]}...' in {voice}")
+        
+        # Clean text for better pronunciation
+        clean_text = clean_text_for_speech(text)
+        
+        # Generate audio with Google TTS
+        tts = gTTS(text=clean_text, lang=voice, slow=False)
+        
+        # Create in-memory buffer
+        audio_buffer = io.BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+        
+        return send_file(
+            audio_buffer,
+            mimetype='audio/mpeg',
+            as_attachment=False,
+            download_name='speech.mp3'
+        )
+        
+    except Exception as e:
+        logger.error(f"TTS Error: {str(e)}")
+        return jsonify({'error': f'Synthesis error: {str(e)}'}), 500
+
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    """Voice-to-text transcription endpoint"""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        language = request.form.get('language', 'fr-FR')
+        
+        logger.info(f"Transcription request for language: {language}")
+        
+        # Save uploaded file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.webm') as temp_webm:
+            audio_file.save(temp_webm.name)
+            
+            # Convert webm to wav using pydub
+            try:
+                audio = AudioSegment.from_file(temp_webm.name)
+                wav_file = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+                audio.export(wav_file.name, format='wav')
+                
+                # Use speech recognition
+                r = sr.Recognizer()
+                with sr.AudioFile(wav_file.name) as source:
+                    audio_data = r.record(source)
+                
+                # Try multiple recognition methods
+                text = None
+                
+                # Method 1: Google Speech Recognition (free)
+                try:
+                    text = r.recognize_google(audio_data, language=language)
+                    logger.info(f"Google recognition successful: '{text}'")
+                except sr.UnknownValueError:
+                    logger.warning("Google could not understand audio")
+                except sr.RequestError as e:
+                    logger.error(f"Google recognition error: {e}")
+                
+                # Method 2: Whisper fallback (if available)
+                if not text:
+                    try:
+                        import whisper
+                        model = whisper.load_model("base")
+                        result = model.transcribe(wav_file.name, language='fr')
+                        text = result["text"].strip()
+                        logger.info(f"Whisper recognition successful: '{text}'")
+                    except ImportError:
+                        logger.warning("Whisper not available")
+                    except Exception as e:
+                        logger.error(f"Whisper error: {e}")
+                
+                # Cleanup temporary files
+                os.unlink(temp_webm.name)
+                os.unlink(wav_file.name)
+                
+                if text:
+                    return jsonify({
+                        'success': True,
+                        'text': text,
+                        'language': language,
+                        'method': 'google' if 'whisper' not in locals() else 'whisper'
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Could not transcribe audio',
+                        'text': '[Transcription failed]'
+                    })
+                    
+            except Exception as e:
+                logger.error(f"Audio processing error: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Audio processing failed: {str(e)}',
+                    'text': '[Audio processing error]'
+                })
+                
+    except Exception as e:
+        logger.error(f"Transcription error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'text': '[Transcription service error]'
+        })
+
+def clean_text_for_speech(text):
+    """Clean text for better speech synthesis"""
+    import re
+    
+    # Remove prefixes and metadata
+    text = re.sub(r'\[.*?\]', '', text)  # Timestamps
+    text = re.sub(r'(IA:|Utilisateur:|JSON:|Enderman:)', '', text)
+    
+    # Improve pronunciation
+    text = text.replace('mm', 'millimètres')
+    text = text.replace('XY', 'X Y')
+    text = text.replace('XYZ', 'X Y Z')
+    
+    # Improve decimal numbers
+    text = re.sub(r'(\d+)\.(\d+)', r'\1 virgule \2', text)
+    
+    # Add spaces around numbers
+    text = re.sub(r'([0-9]+)', r' \1 ', text)
+    
+    # Clean multiple spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    return text
+
+if __name__ == '__main__':
+    print("🎤 Google TTS & Voice Recognition Service for EnderTrack")
+    print("📝 Install: pip install gtts flask flask-cors speech-recognition pydub")
+    print("🚀 Starting on http://localhost:3001")
+    
+    try:
+        app.run(host='0.0.0.0', port=3001, debug=False)
+    except Exception as e:
+        print(f"❌ Startup error: {e}")
+        print("💡 Check that port 3001 is available")
+```
+
+### Voice Recognition JavaScript (modules/ai/voice.js)
+```javascript
+// modules/ai/voice.js - Voice recognition and TTS integration
+class VoiceRecognition {
+  constructor() {
+    this.isRecording = false;
+    this.mediaRecorder = null;
+    this.audioChunks = [];
+    this.serviceUrl = 'http://localhost:3001';
+    this.language = 'fr-FR';
+    
+    this.init();
+  }
+  
+  async init() {
+    // Check if voice service is available
+    try {
+      const response = await fetch(`${this.serviceUrl}/health`);
+      if (response.ok) {
+        console.log('🎤 Voice service connected');
+        this.setupVoiceControls();
+      }
+    } catch (error) {
+      console.warn('⚠️ Voice service not available');
+    }
+  }
+  
+  setupVoiceControls() {
+    const voiceBtn = document.getElementById('voiceBtn');
+    if (!voiceBtn) return;
+    
+    voiceBtn.addEventListener('click', () => {
+      if (this.isRecording) {
+        this.stopRecording();
+      } else {
+        this.startRecording();
+      }
+    });
+  }
+  
+  async startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      this.mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      this.audioChunks = [];
+      
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+      
+      this.mediaRecorder.onstop = () => {
+        this.processRecording();
+      };
+      
+      this.mediaRecorder.start();
+      this.isRecording = true;
+      
+      // Update UI
+      const voiceBtn = document.getElementById('voiceBtn');
+      if (voiceBtn) {
+        voiceBtn.classList.add('recording');
+        voiceBtn.textContent = '🔴';
+        voiceBtn.title = 'Arrêter l\'enregistrement';
+      }
+      
+      // Show audio visualizer
+      this.showAudioVisualizer(stream);
+      
+      console.log('🎤 Recording started');
+      
+    } catch (error) {
+      console.error('Microphone access error:', error);
+      EnderTrack.UI.showNotification('Erreur d\'accès au microphone', 'error');
+    }
+  }
+  
+  stopRecording() {
+    if (this.mediaRecorder && this.isRecording) {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+      
+      // Stop all tracks
+      this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      
+      // Update UI
+      const voiceBtn = document.getElementById('voiceBtn');
+      if (voiceBtn) {
+        voiceBtn.classList.remove('recording');
+        voiceBtn.textContent = '🎤';
+        voiceBtn.title = 'Enregistrement vocal';
+      }
+      
+      // Hide audio visualizer
+      this.hideAudioVisualizer();
+      
+      console.log('🎤 Recording stopped');
+    }
+  }
+  
+  async processRecording() {
+    if (this.audioChunks.length === 0) return;
+    
+    try {
+      // Create audio blob
+      const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+      
+      // Show processing indicator
+      EnderTrack.UI.showNotification('Transcription en cours...', 'info');
+      
+      // Send to transcription service
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('language', this.language);
+      
+      const response = await fetch(`${this.serviceUrl}/transcribe`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.text) {
+        console.log(`🎤 Transcription: "${result.text}"`);
+        
+        // Put transcribed text in AI prompt input
+        const aiPrompt = document.getElementById('aiPrompt');
+        if (aiPrompt) {
+          aiPrompt.value = result.text;
+        }
+        
+        // Auto-send to AI if enabled
+        if (this.autoSendEnabled) {
+          EnderTrack.AI.sendCommand(result.text);
+        }
+        
+        EnderTrack.UI.showNotification(`Transcrit: "${result.text}"`, 'success');
+        
+      } else {
+        console.error('Transcription failed:', result.error);
+        EnderTrack.UI.showNotification('Erreur de transcription', 'error');
+      }
+      
+    } catch (error) {
+      console.error('Processing error:', error);
+      EnderTrack.UI.showNotification('Erreur de traitement audio', 'error');
+    }
+  }
+  
+  showAudioVisualizer(stream) {
+    const canvas = document.getElementById('audioVisualizer');
+    if (!canvas) return;
+    
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
+    
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+    
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const draw = () => {
+      if (!this.isRecording) return;
+      
+      requestAnimationFrame(draw);
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      ctx.fillStyle = '#f0f0f0';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let barHeight;
+      let x = 0;
+      
+      for (let i = 0; i < bufferLength; i++) {
+        barHeight = (dataArray[i] / 255) * canvas.height;
+        
+        ctx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        
+        x += barWidth + 1;
+      }
+    };
+    
+    draw();
+  }
+  
+  hideAudioVisualizer() {
+    const canvas = document.getElementById('audioVisualizer');
+    if (canvas) {
+      canvas.style.display = 'none';
+    }
+  }
+  
+  setLanguage(language) {
+    this.language = language;
+  }
+  
+  setAutoSend(enabled) {
+    this.autoSendEnabled = enabled;
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.Voice = new VoiceRecognition();
+```
+
+### Enhanced Speech Synthesis (modules/ai/speech.js)
+```javascript
+// modules/ai/speech.js - Enhanced TTS with Google service
+class EnhancedSpeechSynthesis {
+  constructor() {
+    this.isMuted = false;
+    this.currentVoice = 'fr';
+    this.serviceUrl = 'http://localhost:3001';
+    this.audioQueue = [];
+    this.isPlaying = false;
+    this.lastMessage = '';
+    this.serviceAvailable = false;
+    
+    this.init();
+  }
+  
+  async init() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      
+      const response = await fetch(`${this.serviceUrl}/health`, {
+        signal: controller.signal,
+        mode: 'cors'
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.supportedVoices = data.supported_voices;
+        this.serviceAvailable = true;
+        console.log('🎤 Google TTS service connected');
+        this.setupVoiceSelector();
+        this.logStatus('🎤 REAL HUMAN VOICE ACTIVATED', '#10b981');
+      }
+    } catch (error) {
+      this.serviceAvailable = false;
+      console.warn('⚠️ Google TTS service not available');
+    }
+  }
+  
+  setupVoiceSelector() {
+    const muteBtn = document.getElementById('muteBtn');
+    if (!muteBtn || !this.supportedVoices) return;
+    
+    // Create voice selector dropdown
+    const voiceSelector = document.createElement('select');
+    voiceSelector.id = 'voiceSelector';
+    voiceSelector.style.cssText = `
+      margin-left: 4px;
+      padding: 2px 4px;
+      border: 1px solid #d1d5db;
+      border-radius: 3px;
+      font-size: 9px;
+      background: white;
+    `;
+    
+    // Add voice options
+    Object.entries(this.supportedVoices).forEach(([code, name]) => {
+      const option = document.createElement('option');
+      option.value = code;
+      option.textContent = name;
+      if (code === this.currentVoice) option.selected = true;
+      voiceSelector.appendChild(option);
+    });
+    
+    // Voice change handler
+    voiceSelector.addEventListener('change', (e) => {
+      this.currentVoice = e.target.value;
+      this.testVoice();
+    });
+    
+    muteBtn.parentNode.insertBefore(voiceSelector, muteBtn.nextSibling);
+  }
+  
+  async testVoice() {
+    const testMessages = {
+      'fr': 'Bonjour, je suis Enderman, votre assistant vocal.',
+      'en': 'Hello, I am Enderman, your voice assistant.',
+      'es': 'Hola, soy Enderman, tu asistente de voz.',
+      'de': 'Hallo, ich bin Enderman, Ihr Sprachassistent.'
+    };
+    
+    const message = testMessages[this.currentVoice] || testMessages['fr'];
+    await this.speak(message, true);
+  }
+  
+  async speak(text, forceSpeak = false) {
+    if ((this.isMuted && !forceSpeak) || !text || text === this.lastMessage || !this.serviceAvailable) {
+      return;
+    }
+    
+    // Clean text
+    let cleanText = this.cleanTextForSpeech(text);
+    
+    // Ignore JSON content
+    if (cleanText.startsWith('{') || cleanText.includes('"action"')) return;
+    if (!cleanText.trim()) return;
+    
+    try {
+      // Stop current audio
+      this.stopCurrentAudio();
+      
+      // Generate audio via Google TTS
+      const response = await fetch(`${this.serviceUrl}/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: cleanText,
+          voice: this.currentVoice
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`TTS error: ${response.status}`);
+      }
+      
+      // Play audio
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      // Add to queue
+      this.audioQueue.push({ audio, url: audioUrl });
+      
+      // Play if not already playing
+      if (!this.isPlaying) {
+        this.playNextInQueue();
+      }
+      
+      this.lastMessage = text;
+      
+    } catch (error) {
+      console.warn('Speech synthesis error:', error);
+    }
+  }
+  
+  playNextInQueue() {
+    if (this.audioQueue.length === 0) {
+      this.isPlaying = false;
+      return;
+    }
+    
+    this.isPlaying = true;
+    const { audio, url } = this.audioQueue.shift();
+    
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      this.playNextInQueue();
+    };
+    
+    audio.onerror = () => {
+      URL.revokeObjectURL(url);
+      this.playNextInQueue();
+    };
+    
+    audio.play().catch(console.warn);
+  }
+  
+  stopCurrentAudio() {
+    this.audioQueue.forEach(({ audio, url }) => {
+      audio.pause();
+      URL.revokeObjectURL(url);
+    });
+    this.audioQueue = [];
+    this.isPlaying = false;
+  }
+  
+  cleanTextForSpeech(text) {
+    return text
+      .replace(/\[.*?\]/g, '') // Timestamps
+      .replace(/(IA:|Utilisateur:|JSON:|Enderman:)/g, '')
+      .replace(/mm/g, 'millimètres')
+      .replace(/XYZ/g, 'X Y Z')
+      .replace(/XY/g, 'X Y')
+      .replace(/\d+\.\d+/g, (match) => match.replace('.', ' virgule '))
+      .replace(/([0-9]+)/g, '$1 ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  
+  mute() {
+    this.isMuted = true;
+    this.stopCurrentAudio();
+  }
+  
+  unmute() {
+    this.isMuted = false;
+  }
+  
+  toggle() {
+    if (this.isMuted) {
+      this.unmute();
+    } else {
+      this.mute();
+    }
+    return !this.isMuted;
+  }
+  
+  logStatus(message, color) {
+    if (typeof addToChatLog === 'function') {
+      addToChatLog(message, color);
+    }
+  }
+}
+
+window.EnderTrack = window.EnderTrack || {};
+window.EnderTrack.Speech = new EnhancedSpeechSynthesis();
+
+// Auto-speak AI responses
+function addToAILogWithSpeech(message, color = '#374151') {
+  // Add to chat log
+  const logDiv = document.getElementById('chatContent');
+  if (logDiv) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = document.createElement('div');
+    logEntry.style.color = color;
+    logEntry.style.marginBottom = '4px';
+    logEntry.innerHTML = `<span style="color:#6b7280">[${timestamp}]</span> ${message}`;
+    logDiv.appendChild(logEntry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+  }
+  
+  // Speak if it's from Enderman
+  if (message.startsWith('Enderman:')) {
+    EnderTrack.Speech.speak(message);
+  }
+}
+
+window.addToAILogWithSpeech = addToAILogWithSpeech;
+```
+
+### Dependencies (requirements.txt)
+```
+Flask==2.3.3
+Flask-CORS==4.0.0
+gtts==2.4.0
+speech-recognition==3.10.0
+pydub==0.25.1
+requests==2.31.0
+```
+
+### AI Integration Testing:
+- [ ] Mammouth.ai API key is configured
+- [ ] AI server starts on port 3002
+- [ ] Voice service starts on port 3001
+- [ ] Connection status updates correctly
+- [ ] Simple commands work ("gauche", "droite", "origine")
+- [ ] Complex commands work ("3 lames microscope")
+- [ ] Context memory persists between commands
+- [ ] Fallback system works when API fails
+- [ ] JavaScript commands execute properly
+- [ ] Cost tracking displays token usage
+- [ ] Error handling graceful for network issues
+
+### Voice Integration Testing:
+- [ ] Google TTS service responds on /health
+- [ ] Text-to-speech works with French voice
+- [ ] Voice selector dropdown appears
+- [ ] Multiple languages work (fr, en, es, de, etc.)
+- [ ] Voice-to-text transcription works
+- [ ] Microphone access granted by browser
+- [ ] Audio visualizer shows during recording
+- [ ] Transcribed text appears in AI prompt
+- [ ] Auto-send to AI works (if enabled)
+- [ ] Audio queue prevents overlapping speech
+- [ ] Mute/unmute controls work
+- [ ] Service gracefully handles offline mode
+
+## 📝 PLUGIN DEVELOPMENT GUIDE (pluginer-agent.txt)
+
+**Save this as `plugins/pluginer-agent.txt` - Complete guide for AI agents to develop EnderTrack plugins**
+
+```
+# ENDERTRACK PLUGIN DEVELOPMENT GUIDE
+# For AI Agents - Complete Plugin Creation Instructions
+# Version: 1.0
+# Date: 2024
+
+## OVERVIEW
+You are tasked with creating a plugin for EnderTrack, a 3D positioning simulator with laboratory equipment control. This guide provides the exact structure, API, and requirements.
+
+## PLUGIN STRUCTURE (MANDATORY)
+
+Every plugin MUST have this exact file structure:
+```
+plugins/user-plugins/YOUR_PLUGIN_NAME/
+├── plugin.json          # Plugin manifest (REQUIRED)
+├── main.js             # Main plugin code (REQUIRED)
+├── ui.html             # UI template (OPTIONAL)
+├── style.css           # Plugin styling (OPTIONAL)
+└── README.md           # Plugin documentation (RECOMMENDED)
+```
+
+## 1. PLUGIN MANIFEST (plugin.json)
+
+EXACT template - modify values but keep structure:
+```json
+{
+  "name": "your-plugin-name",
+  "displayName": "Your Plugin Display Name",
+  "version": "1.0.0",
+  "description": "Brief description of what your plugin does",
+  "author": "Your Name",
+  "type": "user",
+  "icon": "🔌",
+  "main": "main.js",
+  "ui": "ui.html",
+  "styles": "style.css",
+  "dependencies": ["canvas", "navigation"],
+  "permissions": ["canvas-write", "state-write", "api-call"],
+  "api": {
+    "provides": ["functionName1", "functionName2"],
+    "requires": ["moveAbsolute", "moveRelative"]
+  },
+  "settings": {
+    "defaultValue": "example",
+    "maxItems": 100
+  }
+}
+```
+
+### AVAILABLE PERMISSIONS:
+- "canvas-read" - Read canvas state
+- "canvas-write" - Modify canvas rendering
+- "state-read" - Read application state
+- "state-write" - Modify application state
+- "api-call" - Call EnderTrack API functions
+- "file-access" - Access local files
+- "network-access" - Make network requests
+- "equipment-control" - Control laboratory equipment
+
+### AVAILABLE DEPENDENCIES:
+- "canvas" - Canvas rendering system
+- "navigation" - Movement and positioning
+- "state" - State management
+- "ui" - UI components
+- "utils" - Utility functions
+- "drivers" - Equipment drivers (if available)
+
+## 2. MAIN PLUGIN CODE (main.js)
+
+EXACT template - implement your logic in the methods:
+```javascript
+// main.js - Plugin main class
+class YourPluginNamePlugin {
+  constructor() {
+    this.isInitialized = false;
+    this.isActive = false;
+    // Your plugin state here
+  }
+  
+  // REQUIRED: Initialize plugin
+  async init() {
+    console.log('Initializing YourPluginName plugin');
+    
+    // Setup your plugin here
+    this.setupUI();
+    this.registerEventListeners();
+    this.registerAPI();
+    
+    this.isInitialized = true;
+    return true;
+  }
+  
+  // REQUIRED: Activate plugin (show tab)
+  async activate() {
+    if (!this.isInitialized) {
+      await this.init();
+    }
+    
+    // Show your plugin UI
+    this.showUI();
+    this.isActive = true;
+    
+    console.log('YourPluginName plugin activated');
+    return true;
+  }
+  
+  // REQUIRED: Deactivate plugin (hide tab)
+  deactivate() {
+    // Hide your plugin UI
+    this.hideUI();
+    this.isActive = false;
+    
+    console.log('YourPluginName plugin deactivated');
+  }
+  
+  // REQUIRED: Cleanup plugin
+  destroy() {
+    this.deactivate();
+    this.removeEventListeners();
+    this.unregisterAPI();
+    
+    console.log('YourPluginName plugin destroyed');
+  }
+  
+  // Setup your UI
+  setupUI() {
+    const tabContent = document.getElementById('yourPluginTabContent');
+    if (tabContent) {
+      tabContent.innerHTML = `
+        <div class="your-plugin-container">
+          <h4>Your Plugin Interface</h4>
+          <!-- Your UI elements here -->
+          <button onclick="this.yourFunction()">Your Button</button>
+        </div>
+      `;
+    }
+  }
+  
+  // Register your API functions
+  registerAPI() {
+    if (window.EnderTrack && window.EnderTrack.API) {
+      window.EnderTrack.API.register('yourFunction', this.yourFunction.bind(this));
+    }
+  }
+  
+  // Unregister API functions
+  unregisterAPI() {
+    if (window.EnderTrack && window.EnderTrack.API) {
+      window.EnderTrack.API.unregister('yourFunction');
+    }
+  }
+  
+  // Your plugin functions
+  yourFunction() {
+    console.log('Your function called');
+    // Your logic here
+  }
+  
+  // Event listeners
+  registerEventListeners() {
+    // Listen to EnderTrack events
+    if (window.EnderTrack && window.EnderTrack.Events) {
+      window.EnderTrack.Events.on('position:changed', this.onPositionChanged.bind(this));
+    }
+  }
+  
+  removeEventListeners() {
+    if (window.EnderTrack && window.EnderTrack.Events) {
+      window.EnderTrack.Events.off('position:changed', this.onPositionChanged.bind(this));
+    }
+  }
+  
+  onPositionChanged(position) {
+    console.log('Position changed:', position);
+    // React to position changes
+  }
+  
+  showUI() {
+    const tabContent = document.getElementById('yourPluginTabContent');
+    if (tabContent) {
+      tabContent.style.display = 'block';
+    }
+  }
+  
+  hideUI() {
+    const tabContent = document.getElementById('yourPluginTabContent');
+    if (tabContent) {
+      tabContent.style.display = 'none';
+    }
+  }
+}
+
+// REQUIRED: Global registration
+if (typeof window !== 'undefined') {
+  window.EnderTrack = window.EnderTrack || {};
+  window.EnderTrack.Plugins = window.EnderTrack.Plugins || {};
+  window.EnderTrack.Plugins.YourPluginName = new YourPluginNamePlugin();
+}
+
+// REQUIRED: Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = YourPluginNamePlugin;
+}
+```
+
+## 3. ENDERTRACK API REFERENCE
+
+### MOVEMENT API
+```javascript
+// Move to absolute position
+EnderTrack.API.call('moveAbsolute', x, y, z);
+
+// Move relative to current position
+EnderTrack.API.call('moveRelative', dx, dy, dz);
+
+// Go to home position
+EnderTrack.API.call('goHome', 'xy'); // or 'xyz'
+
+// Get current position
+const pos = EnderTrack.API.call('getCurrentPosition');
+```
+
+### STATE API
+```javascript
+// Get application state
+const state = EnderTrack.State.get();
+
+// Update state
+EnderTrack.State.update({ yourProperty: 'value' });
+
+// Listen to state changes
+EnderTrack.Events.on('state:changed', (newState) => {
+  // Handle state change
+});
+```
+
+### CANVAS API
+```javascript
+// Draw on canvas
+EnderTrack.Canvas.drawCircle(x, y, radius, color);
+EnderTrack.Canvas.drawLine(x1, y1, x2, y2, color);
+EnderTrack.Canvas.drawText(x, y, text, color);
+
+// Coordinate conversion
+const canvasPos = EnderTrack.Canvas.mapToCanvas(mapX, mapY);
+const mapPos = EnderTrack.Canvas.canvasToMap(canvasX, canvasY);
+```
+
+### UI API
+```javascript
+// Show notifications
+EnderTrack.UI.showNotification('Message', 'success'); // success, error, warning, info
+
+// Show modal
+EnderTrack.UI.showModal('Title', 'Content', callback);
+
+// Add menu item
+EnderTrack.UI.addMenuItem('Your Plugin', () => {
+  // Menu click handler
+});
+```
+
+### EVENTS API
+```javascript
+// Available events to listen to:
+'position:changed'     // Position updated
+'state:changed'        // Application state changed
+'canvas:redraw'        # Canvas redrawn
+'plugin:loaded'        // Plugin loaded
+'plugin:activated'     // Plugin activated
+'equipment:connected'  // Equipment connected
+'sequence:started'     // Sequence started
+'sequence:completed'   // Sequence completed
+
+// Listen to events
+EnderTrack.Events.on('eventName', callback);
+
+// Emit events
+EnderTrack.Events.emit('yourPlugin:eventName', data);
+```
+
+## 4. UI TEMPLATE (ui.html) - OPTIONAL
+
+If you need complex UI, create ui.html:
+```html
+<div class="your-plugin-container">
+  <div class="plugin-header">
+    <h4>Your Plugin Name</h4>
+    <div class="plugin-controls">
+      <button id="yourButton" class="btn">Action</button>
+    </div>
+  </div>
+  
+  <div class="plugin-content">
+    <!-- Your plugin interface -->
+    <div class="input-group">
+      <label>Parameter:</label>
+      <input type="text" id="yourInput" placeholder="Enter value">
+    </div>
+    
+    <div class="results" id="yourResults">
+      <!-- Results display -->
+    </div>
+  </div>
+</div>
+```
+
+## 5. STYLING (style.css) - OPTIONAL
+
+```css
+.your-plugin-container {
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.plugin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.plugin-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.input-group {
+  margin-bottom: 12px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn:hover {
+  background: #2563eb;
+}
+```
+
+## 6. PLUGIN EXAMPLES
+
+### Simple Data Logger Plugin
+```javascript
+class DataLoggerPlugin {
+  constructor() {
+    this.logs = [];
+  }
+  
+  async init() {
+    this.setupUI();
+    this.registerEventListeners();
+    return true;
+  }
+  
+  setupUI() {
+    const content = `
+      <div class="data-logger-container">
+        <h4>📈 Data Logger</h4>
+        <div class="log-controls">
+          <button onclick="this.startLogging()">Start Logging</button>
+          <button onclick="this.stopLogging()">Stop Logging</button>
+          <button onclick="this.exportLogs()">Export CSV</button>
+        </div>
+        <div class="log-display" id="logDisplay"></div>
+      </div>
+    `;
+    
+    document.getElementById('dataLoggerTabContent').innerHTML = content;
+  }
+  
+  registerEventListeners() {
+    EnderTrack.Events.on('position:changed', (pos) => {
+      if (this.isLogging) {
+        this.logPosition(pos);
+      }
+    });
+  }
+  
+  startLogging() {
+    this.isLogging = true;
+    this.logs = [];
+    console.log('Data logging started');
+  }
+  
+  stopLogging() {
+    this.isLogging = false;
+    console.log('Data logging stopped');
+  }
+  
+  logPosition(pos) {
+    this.logs.push({
+      timestamp: Date.now(),
+      x: pos.x,
+      y: pos.y,
+      z: pos.z
+    });
+    this.updateDisplay();
+  }
+  
+  updateDisplay() {
+    const display = document.getElementById('logDisplay');
+    if (display) {
+      display.innerHTML = `<p>Logged ${this.logs.length} positions</p>`;
+    }
+  }
+  
+  exportLogs() {
+    const csv = this.logs.map(log => 
+      `${new Date(log.timestamp).toISOString()},${log.x},${log.y},${log.z}`
+    ).join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'endertrack_log.csv';
+    a.click();
+  }
+}
+```
+
+## 7. TESTING YOUR PLUGIN
+
+1. Place your plugin folder in `plugins/user-plugins/`
+2. Open EnderTrack
+3. Click the "Add (+)" tab
+4. Your plugin should appear in the available plugins list
+5. Click "Activate" to load your plugin
+6. Test all functionality
+
+## 8. COMMON PATTERNS
+
+### Equipment Control
+```javascript
+// Connect to equipment
+async connectEquipment(type) {
+  const driver = await EnderTrack.API.call('loadDriver', type);
+  const connected = await driver.connect();
+  return connected;
+}
+```
+
+### Data Persistence
+```javascript
+// Save plugin data
+saveData(data) {
+  localStorage.setItem(`endertrack_${this.pluginName}`, JSON.stringify(data));
+}
+
+// Load plugin data
+loadData() {
+  const data = localStorage.getItem(`endertrack_${this.pluginName}`);
+  return data ? JSON.parse(data) : null;
+}
+```
+
+### Canvas Drawing
+```javascript
+// Draw custom elements on canvas
+drawOnCanvas() {
+  const canvas = document.getElementById('mapCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Your drawing code
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(100, 100, 50, 50);
+}
+```
+
+## 9. BEST PRACTICES
+
+1. **Always check if EnderTrack APIs exist before using them**
+2. **Clean up event listeners in destroy() method**
+3. **Use meaningful plugin names and descriptions**
+4. **Handle errors gracefully**
+5. **Provide user feedback for long operations**
+6. **Follow the existing UI design patterns**
+7. **Test your plugin thoroughly**
+8. **Document your plugin's functionality**
+
+## 10. TROUBLESHOOTING
+
+### Plugin not loading?
+- Check plugin.json syntax
+- Verify file paths are correct
+- Check browser console for errors
+
+### API calls not working?
+- Ensure you have the required permissions
+- Check if dependencies are loaded
+- Verify API function names
+
+### UI not displaying?
+- Check element IDs match your code
+- Verify CSS is loading
+- Check for JavaScript errors
+
+This guide provides everything needed to create a functional EnderTrack plugin. Follow the structure exactly and your plugin will integrate seamlessly with the system.
+```
+
+### System Testing Validation:
+- [ ] Each module has single responsibility
+- [ ] No circular dependencies between modules
+- [ ] main.js is under 50 lines
+- [ ] State changes propagate correctly via events
+- [ ] Canvas renders correctly at 600x600px
+- [ ] Coordinate transformations are accurate
+- [ ] All UI modes switch properly
+- [ ] Templates load and position correctly
+- [ ] AI commands execute as expected
+- [ ] Voice recognition works with microphone
+- [ ] Emergency stop functions immediately
+- [ ] Save/load preserves all data
+- [ ] Module loading order is respected
+- [ ] Error handling works at each level
+- [ ] Plugin system loads and manages plugins correctly
+- [ ] Plugin API functions work as expected
+- [ ] Plugin UI integrates seamlessly with main interface
+
+## 🎆 ARCHITECTURE ADVANTAGES
+
+1. **Maintainability** - Each file has one clear purpose
+2. **Testability** - Pure functions easy to unit test
+3. **Reusability** - Modules can be used independently
+4. **Scalability** - Easy to add new features
+5. **Debugging** - Clear separation makes issues easier to trace
+6. **Performance** - Only load what you need
+7. **Team Development** - Multiple developers can work on different modules
+
+This modular architecture provides the complete specification needed to recreate EnderTrack with proper separation of concerns, maintainable code structure, and scalable design patterns.

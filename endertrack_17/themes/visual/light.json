@@ -1,0 +1,31 @@
+{
+  "name": "Clair",
+  "description": "Thème clair classique",
+  "colors": {
+    "primary": "#007aff",
+    "secondary": "#5856d6",
+    "success": "#34c759",
+    "warning": "#ff9500",
+    "danger": "#ff3b30",
+    "background": "#ffffff",
+    "surface": "#f6f8fb",
+    "panel": "#ffffff",
+    "border": "#e5e5e7",
+    "text": "#000000",
+    "textSecondary": "#3c3c43",
+    "textMuted": "#8e8e93",
+    "canvas": "#ffffff",
+    "grid": "#e5e5e7",
+    "overlay": "rgba(255, 193, 7, 0.3)"
+  },
+  "fonts": {
+    "primary": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "monospace": "'SF Mono', Monaco, 'Cascadia Code', monospace",
+    "sizes": {
+      "small": "12px",
+      "normal": "14px",
+      "large": "16px",
+      "xlarge": "18px"
+    }
+  }
+}

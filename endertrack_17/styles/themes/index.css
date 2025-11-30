@@ -1,0 +1,45 @@
+/* EnderTrack - Themes Index */
+/* Import de tous les thèmes disponibles */
+
+@import url('./dark.css');
+@import url('./light.css');
+
+/* Configuration par défaut */
+:root {
+  /* Le thème sombre est appliqué par défaut */
+  /* Les variables sont définies dans dark.css */
+}
+
+/* Utilitaires pour les thèmes */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Application automatique du thème transition sur tous les éléments */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* Styles pour le sélecteur de thème */
+.theme-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-selector select {
+  padding: 6px 10px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  border-radius: var(--radius-small);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-selector label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}

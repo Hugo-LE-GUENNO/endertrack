@@ -1,0 +1,44 @@
+{
+  "name": "Scientifique",
+  "description": "Mode scientifique avec terminologie technique et précision",
+  "terminology": {
+    "controllerModes": {
+      "step": "Discret",
+      "continuous": "Continu"
+    },
+    "navigation": {
+      "plateau": "Stage XYZ",
+      "position": "Coordonnées spatiales",
+      "movement": "Translation",
+      "sensitivity": "Pas de déplacement",
+      "speed": "Vélocité (mm/s)"
+    },
+    "interface": {
+      "canvas": "Interface graphique",
+      "zoom": "Grossissement",
+      "pan": "Translation viewport",
+      "coordinates": "Référentiel cartésien"
+    },
+    "hardware": {
+      "connection": "Communication série",
+      "baudrate": "Fréquence transmission",
+      "gcode": "Instructions G-code",
+      "homing": "Calibration référentiel"
+    }
+  },
+  "ui": {
+    "showAdvancedSettings": true,
+    "showDebugInfo": false,
+    "showPrecisionValues": true,
+    "showTechnicalTooltips": true,
+    "precisionDecimals": 3,
+    "showUnits": true,
+    "showPerformanceMetrics": false
+  },
+  "features": {
+    "enableAllPlugins": true,
+    "showExperimentalFeatures": false,
+    "enableDeveloperMode": false,
+    "showSystemLogs": false
+  }
+}

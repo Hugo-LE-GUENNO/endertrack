@@ -1,0 +1,172 @@
+{
+  "name": "endertrack",
+  "version": "2.0.0",
+  "description": "3D Position Simulator with AI Integration for Laboratory Equipment Control",
+  "main": "main.js",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000",
+    "ai-server": "cd server && python ai-agent.py",
+    "voice-server": "cd server && python voice-service.py",
+    "hardware-server": "cd enderscope && python hardware-server.py",
+    "test": "echo \"No tests specified\" && exit 0",
+    "build": "echo \"No build process needed for client-side app\" && exit 0",
+    "lint": "echo \"No linting configured\" && exit 0"
+  },
+  "keywords": [
+    "3d-positioning",
+    "laboratory-equipment",
+    "microscopy",
+    "automation",
+    "ai-assistant",
+    "hardware-control",
+    "enderscope"
+  ],
+  "author": "EnderTrack Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/endertrack/endertrack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/endertrack/endertrack/issues"
+  },
+  "homepage": "https://github.com/endertrack/endertrack#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.8.0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "pythonDependencies": {
+    "flask": ">=2.3.3",
+    "flask-cors": ">=4.0.0",
+    "gtts": ">=2.4.0",
+    "speech-recognition": ">=3.10.0",
+    "pydub": ">=0.25.1",
+    "requests": ">=2.31.0",
+    "pyserial": ">=3.5",
+    "numpy": ">=1.24.0"
+  },
+  "endertrack": {
+    "version": "2.0.0",
+    "architecture": "modular-plugin-based",
+    "features": [
+      "3D Position Tracking",
+      "Dual Navigation Modes",
+      "AI Assistant Integration",
+      "Voice Recognition & TTS",
+      "Laboratory Templates",
+      "Equipment Control",
+      "Plugin System",
+      "Real-time Visualization"
+    ],
+    "modules": {
+      "core": [
+        "state",
+        "canvas",
+        "navigation",
+        "movement",
+        "ui",
+        "utils"
+      ],
+      "plugins": [
+        "lists",
+        "sequences",
+        "drivers",
+        "enderman",
+        "settings"
+      ]
+    },
+    "hardware": {
+      "enderscope": {
+        "stage": "3-axis motorized stage",
+        "lights": "RGB LED control",
+        "patterns": "Scan pattern generation",
+        "serial": "Serial communication utilities"
+      }
+    },
+    "ai": {
+      "provider": "mammouth.ai",
+      "model": "gpt-4.1-mini",
+      "features": [
+        "Natural language commands",
+        "Context memory",
+        "Voice recognition",
+        "Text-to-speech",
+        "Equipment control"
+      ]
+    }
+  },
+  "config": {
+    "servers": {
+      "main": {
+        "port": 8000,
+        "host": "localhost"
+      },
+      "ai": {
+        "port": 3002,
+        "host": "localhost"
+      },
+      "voice": {
+        "port": 3001,
+        "host": "localhost"
+      },
+      "hardware": {
+        "port": 3003,
+        "host": "localhost"
+      }
+    },
+    "paths": {
+      "plugins": {
+        "core": "plugins/core-plugins/",
+        "user": "plugins/user-plugins/"
+      },
+      "templates": "templates/",
+      "enderscope": "enderscope/"
+    },
+    "display": {
+      "colors": {
+        "currentPosition": "#0b84ff",
+        "targetPosition": "#10b981",
+        "trackPath": "#f59e0b",
+        "grid": "#e5e7eb",
+        "crosshair": "#ef4444",
+        "zAxis": "#8b5cf6",
+        "background": "#f6f8fb",
+        "template": "#6b7280"
+      },
+      "tracking": {
+        "showPositionTrack": true,
+        "trackMaxPoints": 100,
+        "trackFadeOut": true,
+        "continuousTracking": false,
+        "trackLineWidth": 2
+      },
+      "crosshair": {
+        "enabled": true,
+        "size": 20,
+        "thickness": 1,
+        "style": "cross",
+        "followMouse": true
+      },
+      "grid": {
+        "enabled": true,
+        "spacing": 10,
+        "majorLines": 50,
+        "opacity": 0.3
+      },
+      "zVisualization": {
+        "showScale": true,
+        "showMarker": true,
+        "showPreview": true,
+        "colorByDepth": true
+      },
+      "animations": {
+        "smoothMovement": true,
+        "transitionDuration": 300,
+        "easing": "ease-out"
+      }
+    }
+  }
+}

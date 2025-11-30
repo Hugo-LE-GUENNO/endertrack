@@ -1,0 +1,148 @@
+{
+  "printerStages": [
+    {
+      "id": "ender2",
+      "name": "Creality Ender-2",
+      "brand": "Creality",
+      "dimensions": { "x": 150, "y": 150, "z": 200 },
+      "description": "Imprimante 3D compacte et abordable",
+      "category": "Entry Level"
+    },
+    {
+      "id": "ender3",
+      "name": "Creality Ender-3",
+      "brand": "Creality",
+      "dimensions": { "x": 220, "y": 220, "z": 250 },
+      "description": "Imprimante 3D populaire et polyvalente",
+      "category": "Popular"
+    },
+    {
+      "id": "ender3_pro",
+      "name": "Creality Ender-3 Pro",
+      "brand": "Creality",
+      "dimensions": { "x": 220, "y": 220, "z": 250 },
+      "description": "Version améliorée de l'Ender-3",
+      "category": "Popular"
+    },
+    {
+      "id": "ender3_v2",
+      "name": "Creality Ender-3 V2",
+      "brand": "Creality",
+      "dimensions": { "x": 220, "y": 220, "z": 250 },
+      "description": "Ender-3 avec écran couleur et améliorations",
+      "category": "Popular"
+    },
+    {
+      "id": "ender3_s1",
+      "name": "Creality Ender-3 S1",
+      "brand": "Creality",
+      "dimensions": { "x": 220, "y": 220, "z": 270 },
+      "description": "Ender-3 avec auto-leveling et extrudeur direct",
+      "category": "Advanced"
+    },
+    {
+      "id": "ender5",
+      "name": "Creality Ender-5",
+      "brand": "Creality",
+      "dimensions": { "x": 220, "y": 220, "z": 300 },
+      "description": "Structure cube stable avec plateau mobile en Z",
+      "category": "Advanced"
+    },
+    {
+      "id": "ender5_pro",
+      "name": "Creality Ender-5 Pro",
+      "brand": "Creality",
+      "dimensions": { "x": 220, "y": 220, "z": 300 },
+      "description": "Ender-5 avec améliorations premium",
+      "category": "Advanced"
+    },
+    {
+      "id": "cr10",
+      "name": "Creality CR-10",
+      "brand": "Creality",
+      "dimensions": { "x": 300, "y": 300, "z": 400 },
+      "description": "Grande imprimante 3D pour projets volumineux",
+      "category": "Large Format"
+    },
+    {
+      "id": "cr10_s5",
+      "name": "Creality CR-10 S5",
+      "brand": "Creality",
+      "dimensions": { "x": 500, "y": 500, "z": 500 },
+      "description": "Très grande imprimante 3D professionnelle",
+      "category": "Large Format"
+    },
+    {
+      "id": "prusa_mini",
+      "name": "Prusa MINI+",
+      "brand": "Prusa Research",
+      "dimensions": { "x": 180, "y": 180, "z": 180 },
+      "description": "Imprimante compacte de qualité premium",
+      "category": "Premium"
+    },
+    {
+      "id": "prusa_mk3s",
+      "name": "Prusa i3 MK3S+",
+      "brand": "Prusa Research",
+      "dimensions": { "x": 250, "y": 210, "z": 210 },
+      "description": "Référence en qualité d'impression",
+      "category": "Premium"
+    },
+    {
+      "id": "bambu_a1_mini",
+      "name": "Bambu Lab A1 mini",
+      "brand": "Bambu Lab",
+      "dimensions": { "x": 180, "y": 180, "z": 180 },
+      "description": "Imprimante automatisée compacte",
+      "category": "Premium"
+    },
+    {
+      "id": "bambu_x1_carbon",
+      "name": "Bambu Lab X1 Carbon",
+      "brand": "Bambu Lab",
+      "dimensions": { "x": 256, "y": 256, "z": 256 },
+      "description": "Imprimante haut de gamme ultra-rapide",
+      "category": "Premium"
+    },
+    {
+      "id": "anycubic_kobra",
+      "name": "Anycubic Kobra",
+      "brand": "Anycubic",
+      "dimensions": { "x": 220, "y": 220, "z": 250 },
+      "description": "Auto-leveling et facilité d'utilisation",
+      "category": "Popular"
+    },
+    {
+      "id": "artillery_sidewinder",
+      "name": "Artillery Sidewinder X2",
+      "brand": "Artillery",
+      "dimensions": { "x": 300, "y": 300, "z": 400 },
+      "description": "Grande imprimante avec écran tactile",
+      "category": "Large Format"
+    },
+    {
+      "id": "custom_small",
+      "name": "Petit Stage Personnalisé",
+      "brand": "Custom",
+      "dimensions": { "x": 100, "y": 100, "z": 100 },
+      "description": "Configuration pour petit stage de travail",
+      "category": "Custom"
+    },
+    {
+      "id": "custom_medium",
+      "name": "Stage Moyen Personnalisé",
+      "brand": "Custom",
+      "dimensions": { "x": 200, "y": 200, "z": 150 },
+      "description": "Configuration standard pour stage moyen",
+      "category": "Custom"
+    },
+    {
+      "id": "custom_large",
+      "name": "Grand Stage Personnalisé",
+      "brand": "Custom",
+      "dimensions": { "x": 400, "y": 400, "z": 200 },
+      "description": "Configuration pour grand stage de travail",
+      "category": "Custom"
+    }
+  ]
+}

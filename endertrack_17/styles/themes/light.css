@@ -1,0 +1,67 @@
+/* EnderTrack - Light Theme */
+/* Variables CSS pour le thème clair */
+
+[data-theme="light"] {
+  /* Couleurs principales */
+  --primary: #4f9eff;
+  --primary-dark: #3d7dd6;
+  --primary-light: #6bb3ff;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+
+  /* Arrière-plans */
+  --background: #f8fafc;
+  --panel: #ffffff;
+  --panel-dark: #f1f5f9;
+  --panel-light: #f8fafc;
+  --canvas-bg: #f8fafc;
+  --input-bg: #ffffff;
+
+  /* Texte */
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  /* Bordures */
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --input-border: #e2e8f0;
+
+  /* Boutons */
+  --button-bg: #f8fafc;
+  --button-hover: #e2e8f0;
+  --button-active: var(--primary);
+
+  /* Ombres */
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-light: 0 2px 6px rgba(0,0,0,0.05);
+
+  /* Rayons */
+  --radius: 8px;
+  --radius-small: 4px;
+}
+
+/* Styles spécifiques au thème clair */
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+[data-theme="light"] body {
+  background: var(--background);
+  color: var(--text);
+}
+
+/* Scrollbars pour thème clair */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--panel-dark);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

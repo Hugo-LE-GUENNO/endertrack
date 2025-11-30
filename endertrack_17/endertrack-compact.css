@@ -1,0 +1,247 @@
+/* Styles ultra-compacts pour Settings */
+.tab-panel#settingsTabContent {
+  padding: 4px;
+  line-height: 1.2;
+}
+
+.tab-panel#settingsTabContent h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.tab-panel#settingsTabContent .settings-section {
+  margin-bottom: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: var(--panel-bg);
+}
+
+.tab-panel#settingsTabContent .settings-section h5 {
+  margin: 0 0 3px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.tab-panel#settingsTabContent .setting-group {
+  margin-bottom: 3px;
+}
+
+.tab-panel#settingsTabContent .setting-group:last-child {
+  margin-bottom: 0;
+}
+
+.tab-panel#settingsTabContent label {
+  font-size: 10px;
+  font-weight: 500;
+  min-width: 50px;
+  color: var(--text-secondary);
+}
+
+/* Supprimer les flèches des inputs number */
+.tab-panel#settingsTabContent input[type="number"] {
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  font-size: 10px;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--input-bg);
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent input[type="number"]::-webkit-outer-spin-button,
+.tab-panel#settingsTabContent input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tab-panel#settingsTabContent select {
+  font-size: 10px;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--input-bg);
+  height: 22px;
+}
+
+.tab-panel#settingsTabContent input[type="range"] {
+  height: 12px;
+}
+
+.tab-panel#settingsTabContent button {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  height: 22px;
+}
+
+.tab-panel#settingsTabContent .connect-button {
+  font-size: 10px;
+  padding: 2px 8px;
+  height: 22px;
+}
+
+.tab-panel#settingsTabContent .connection-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tab-panel#settingsTabContent .connection-status span {
+  font-size: 10px;
+}
+
+.tab-panel#settingsTabContent .connection-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.tab-panel#settingsTabContent .progress-bar {
+  height: 12px;
+  margin-top: 2px;
+}
+
+.tab-panel#settingsTabContent .progress-text {
+  font-size: 9px;
+}
+
+.tab-panel#settingsTabContent .control-buttons {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.tab-panel#settingsTabContent .control-buttons button {
+  flex: 1;
+  min-width: 40px;
+  font-size: 9px;
+  padding: 2px 4px;
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent .gcode-input {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.tab-panel#settingsTabContent .gcode-input input {
+  flex: 1;
+  font-size: 9px;
+  padding: 2px 4px;
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent .gcode-input button {
+  padding: 2px 4px;
+  height: 20px;
+}
+
+/* Plateau dimensions sur une ligne */
+.tab-panel#settingsTabContent .dimension-inputs {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.tab-panel#settingsTabContent .dimension-input {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tab-panel#settingsTabContent .dimension-input label {
+  font-size: 9px;
+  min-width: 12px;
+}
+
+.tab-panel#settingsTabContent .dimension-input input {
+  width: 45px;
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent .dimension-buttons {
+  display: flex;
+  gap: 2px;
+}
+
+.tab-panel#settingsTabContent .dimension-buttons button {
+  padding: 2px 6px;
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent .history-management {
+  display: flex;
+  gap: 2px;
+}
+
+.tab-panel#settingsTabContent .history-btn {
+  flex: 1;
+  font-size: 9px;
+  padding: 2px 4px;
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent .theme-settings .setting-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.tab-panel#settingsTabContent .theme-settings .setting-row label {
+  min-width: 50px;
+  font-size: 9px;
+}
+
+.tab-panel#settingsTabContent .theme-settings select {
+  flex: 1;
+  height: 20px;
+}
+
+.tab-panel#settingsTabContent .profile-description {
+  margin-top: 3px;
+  padding: 3px;
+  background: var(--background);
+  border-radius: 2px;
+  font-size: 8px;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.tab-panel#settingsTabContent .input-with-buttons {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.tab-panel#settingsTabContent .input-with-buttons select {
+  flex: 1;
+}
+
+.tab-panel#settingsTabContent .input-with-buttons button {
+  padding: 2px 4px;
+  font-size: 9px;
+  height: 20px;
+}
+.config-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.config-actions button {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--button-bg);
+    color: var(--text);
+    border-radius: 4px;
+    cursor: pointer;
+}

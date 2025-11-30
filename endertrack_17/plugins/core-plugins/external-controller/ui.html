@@ -1,0 +1,109 @@
+<div class="external-controller-plugin">
+  <h4>🎮 Contrôleur Externe</h4>
+  
+  <!-- Section Détection -->
+  <div class="plugin-section">
+    <h5>Contrôleurs Détectés</h5>
+    <div id="controllerList" class="controller-list">
+      <!-- Controllers will be populated here -->
+    </div>
+    <button onclick="window.ExternalController.detectControllers(); window.ExternalController.updateUI()" class="btn">
+      🔄 Actualiser
+    </button>
+  </div>
+
+  <!-- Section Sélection -->
+  <div class="plugin-section">
+    <h5>Contrôleur Sélectionné</h5>
+    <div class="selected-controller">
+      <span id="selectedController">Aucun</span>
+    </div>
+  </div>
+
+  <!-- Section Presets -->
+  <div class="plugin-section">
+    <h5>Presets</h5>
+    <div class="preset-buttons">
+      <button onclick="window.ExternalController.loadPreset('akai_mpk')" class="btn preset-btn">
+        🎹 Akai MPK
+      </button>
+      <button onclick="window.ExternalController.loadPreset('ps4_controller')" class="btn preset-btn">
+        🎮 PS4
+      </button>
+      <button onclick="window.ExternalController.loadPreset('xbox_controller')" class="btn preset-btn">
+        🎮 Xbox
+      </button>
+    </div>
+  </div>
+
+  <!-- Section Mapping -->
+  <div id="mappingSection" class="plugin-section" style="display: none;">
+    <h5>Configuration des Contrôles</h5>
+    
+    <div class="mapping-grid">
+      <div class="mapping-category">
+        <h6>Mouvement XY</h6>
+        <button onclick="window.ExternalController.startMapping('up')" class="btn mapping-btn">Haut</button>
+        <button onclick="window.ExternalController.startMapping('down')" class="btn mapping-btn">Bas</button>
+        <button onclick="window.ExternalController.startMapping('left')" class="btn mapping-btn">Gauche</button>
+        <button onclick="window.ExternalController.startMapping('right')" class="btn mapping-btn">Droite</button>
+      </div>
+      
+      <div class="mapping-category">
+        <h6>Mouvement Z</h6>
+        <button onclick="window.ExternalController.startMapping('zUp')" class="btn mapping-btn">Z+</button>
+        <button onclick="window.ExternalController.startMapping('zDown')" class="btn mapping-btn">Z-</button>
+      </div>
+      
+      <div class="mapping-category">
+        <h6>Actions</h6>
+        <button onclick="window.ExternalController.startMapping('home')" class="btn mapping-btn">Home XY</button>
+        <button onclick="window.ExternalController.startMapping('homeXYZ')" class="btn mapping-btn">Home XYZ</button>
+        <button onclick="window.ExternalController.startMapping('emergency')" class="btn mapping-btn">Arrêt</button>
+      </div>
+    </div>
+
+    <!-- Mapping actuel -->
+    <div class="current-mapping">
+      <h6>Mapping Actuel</h6>
+      <div id="mappingDisplay">
+        <!-- Mapping will be displayed here -->
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="mapping-actions">
+      <button onclick="window.ExternalController.saveMapping()" class="btn">💾 Sauvegarder</button>
+      <button onclick="window.ExternalController.loadMapping()" class="btn">📁 Charger</button>
+      <button onclick="window.ExternalController.mapping = {}; window.ExternalController.updateMappingDisplay()" class="btn btn-danger">🗑️ Effacer</button>
+    </div>
+  </div>
+
+  <!-- Section Status -->
+  <div class="plugin-section">
+    <h5>État</h5>
+    <div class="status-info">
+      <div class="status-item">
+        <span>Mode Écoute:</span>
+        <span id="listeningStatus">Inactif</span>
+      </div>
+      <div class="status-item">
+        <span>Contrôleurs:</span>
+        <span id="controllerCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="plugin-section instructions">
+    <h5>Instructions</h5>
+    <ol>
+      <li>Connectez votre contrôleur (USB, Bluetooth, MIDI)</li>
+      <li>Cliquez sur "Actualiser" pour détecter</li>
+      <li>Sélectionnez votre contrôleur</li>
+      <li>Utilisez un preset ou configurez manuellement</li>
+      <li>Pour mapper: cliquez sur un bouton puis appuyez sur votre contrôleur</li>
+      <li>Sauvegardez votre configuration</li>
+    </ol>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+{
+  "name": "Sombre",
+  "description": "Thème sombre pour réduire la fatigue oculaire",
+  "colors": {
+    "primary": "#0b84ff",
+    "secondary": "#5856d6",
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "danger": "#ef4444",
+    "background": "#1a1a1a",
+    "surface": "#2c2c2c",
+    "panel": "#333333",
+    "border": "#404040",
+    "text": "#ffffff",
+    "textSecondary": "#cccccc",
+    "textMuted": "#888888",
+    "canvas": "#1a1a1a",
+    "grid": "#404040",
+    "overlay": "rgba(255, 193, 7, 0.3)"
+  },
+  "fonts": {
+    "primary": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "monospace": "'SF Mono', Monaco, 'Cascadia Code', monospace",
+    "sizes": {
+      "small": "12px",
+      "normal": "14px",
+      "large": "16px",
+      "xlarge": "18px"
+    }
+  }
+}

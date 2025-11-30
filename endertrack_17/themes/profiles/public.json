@@ -1,0 +1,44 @@
+{
+  "name": "Grand Public",
+  "description": "Interface simplifiée avec terminologie accessible",
+  "terminology": {
+    "controllerModes": {
+      "step": "Étape",
+      "continuous": "Fluide"
+    },
+    "navigation": {
+      "plateau": "Plateau",
+      "position": "Position",
+      "movement": "Mouvement",
+      "sensitivity": "Sensibilité",
+      "speed": "Vitesse"
+    },
+    "interface": {
+      "canvas": "Vue",
+      "zoom": "Zoom",
+      "pan": "Déplacement vue",
+      "coordinates": "Coordonnées"
+    },
+    "hardware": {
+      "connection": "Connexion",
+      "baudrate": "Vitesse connexion",
+      "gcode": "Commandes",
+      "homing": "Retour origine"
+    }
+  },
+  "ui": {
+    "showAdvancedSettings": false,
+    "showDebugInfo": false,
+    "showPrecisionValues": false,
+    "showTechnicalTooltips": false,
+    "precisionDecimals": 2,
+    "showUnits": false,
+    "showPerformanceMetrics": false
+  },
+  "features": {
+    "enableAllPlugins": false,
+    "showExperimentalFeatures": false,
+    "enableDeveloperMode": false,
+    "showSystemLogs": false
+  }
+}

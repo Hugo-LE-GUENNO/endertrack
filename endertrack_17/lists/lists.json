@@ -1,0 +1,12 @@
+{
+  "name": "lists",
+  "displayName": "Gestion des Listes",
+  "version": "1.0.0",
+  "description": "Gestion des listes de positions avec templates et exécution automatique",
+  "author": "EnderTrack Core",
+  "type": "core",
+  "icon": "📋",
+  "main": "lists.js",
+  "dependencies": ["canvas", "navigation"],
+  "permissions": ["canvas-write", "state-write"]
+}

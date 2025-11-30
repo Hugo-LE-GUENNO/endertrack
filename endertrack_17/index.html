@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnderTrack - 3D Position Simulator</title>
+    <link rel="stylesheet" href="endertrack.css">
+    
+
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Panel - Controls and Modes -->
+        <div class="left-panel">
+            <!-- Tab System -->
+            <div class="tab-system">
+                <button class="tab-btn active" id="navigationTab" onclick="switchTab('navigation')">
+                    Navigation
+                </button>
+                <button class="tab-btn" id="settingsTab" onclick="switchTab('settings')">
+                    Configs
+                </button>
+                <button class="tab-btn" id="othersTab" onclick="switchTab('others')">
+                    Autres
+                </button>
+                <button class="tab-btn" id="controllerTab" onclick="switchTab('controller')" style="display: none;">
+                    🎮 Contrôleur
+                </button>
+                <button class="tab-btn" id="listsTab" onclick="switchTab('lists')">
+                    📋 Lists
+                </button>
+            </div>
+
+            <!-- Tab Content Areas -->
+            <div class="tab-content">
+                <!-- Navigation Panel (Default Active) -->
+                <div class="tab-panel active" id="navigationTabContent">
+                    <!-- Mode Toggle -->
+                    <div class="mode-toggle">
+                        <button class="toggle-btn active" id="relativeTab" onclick="setInputMode('relative')">
+                            Relatif
+                        </button>
+                        <button class="toggle-btn" id="absoluteTab" onclick="setInputMode('absolute')">
+                            Absolu
+                        </button>
+                    </div>
+
+                    <!-- Relative Mode Interface (Default) -->
+                    <div class="relative-controls active" id="relativeControls">
+                        <!-- Navigation Controls (Fixed Height) -->
+                        <div class="navigation-controls-container">
+                            <!-- Normal Mode: XY left, Z right -->
+                            <div class="normal-mode" id="normalMode">
+                                <div class="arrow-pad" id="arrowPad">
+                                    <div class="arrow-row">
+                                        <button class="arrow-btn diagonal" id="upLeft" onclick="moveDirection('upLeft')">↖</button>
+                                        <button class="arrow-btn" id="up" onclick="moveDirection('up')">▲</button>
+                                        <button class="arrow-btn diagonal" id="upRight" onclick="moveDirection('upRight')">↗</button>
+                                    </div>
+                                    <div class="arrow-row">
+                                        <button class="arrow-btn" id="left" onclick="moveDirection('left')">◄</button>
+                                        <div class="arrow-center">XY</div>
+                                        <button class="arrow-btn" id="right" onclick="moveDirection('right')">►</button>
+                                    </div>
+                                    <div class="arrow-row">
+                                        <button class="arrow-btn diagonal" id="downLeft" onclick="moveDirection('downLeft')">↙</button>
+                                        <button class="arrow-btn" id="down" onclick="moveDirection('down')">▼</button>
+                                        <button class="arrow-btn diagonal" id="downRight" onclick="moveDirection('downRight')">↘</button>
+                                    </div>
+                                </div>
+                                <div class="z-controls-right">
+                                    <button class="z-btn" id="zUp" onclick="moveDirection('zUp')">▲</button>
+                                    <div class="z-center">Z</div>
+                                    <button class="z-btn" id="zDown" onclick="moveDirection('zDown')">▼</button>
+                                </div>
+                            </div>
+
+                            <!-- Controller Mode: Joystick left, Wheel right -->
+                            <div class="controller-mode" id="controllerMode" style="display: none;">
+                                <div class="arrow-pad">
+                                    <div class="joystick-container">
+                                        <div class="joystick-base"></div>
+                                        <div class="joystick-stick" id="joystickStick"></div>
+                                    </div>
+                                </div>
+                                <div class="z-controls-right controller-right" id="controllerRight">
+                                    <svg class="wheel-gear" id="wheelGear" width="60" height="60" viewBox="0 0 40 40">
+                                        <g class="gear-wheel" id="gearWheel">
+                                            <!-- Gear teeth -->
+                                            <polygon points="20,2 22,6 18,6" fill="#4a5568"/>
+                                            <polygon points="32.7,8.5 30.5,11.5 28.5,8.5" fill="#4a5568"/>
+                                            <polygon points="38,20 34,22 34,18" fill="#4a5568"/>
+                                            <polygon points="32.7,31.5 28.5,31.5 30.5,28.5" fill="#4a5568"/>
+                                            <polygon points="20,38 18,34 22,34" fill="#4a5568"/>
+                                            <polygon points="7.3,31.5 9.5,28.5 11.5,31.5" fill="#4a5568"/>
+                                            <polygon points="2,20 6,18 6,22" fill="#4a5568"/>
+                                            <polygon points="7.3,8.5 11.5,8.5 9.5,11.5" fill="#4a5568"/>
+                                            <!-- Main circle -->
+                                            <circle cx="20" cy="20" r="12" fill="#ffc107" stroke="#4a5568" stroke-width="2"/>
+                                            <!-- Center hole -->
+                                            <circle cx="20" cy="20" r="4" fill="#2c2c2c"/>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+
+
+                            <!-- Toggle Button Below -->
+                            <div class="toggle-bottom">
+                                <button class="controller-toggle-btn" id="keyboardMode" onclick="toggleKeyboardMode()">
+                                    🕹️ Contrôleur
+                                </button>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Controller Mode Toggle -->
+                        <div class="controller-mode-toggle" id="controllerModeToggle" style="display: none;">
+                            <button class="toggle-btn active" id="stepModeBtn" onclick="setControllerMode('step')">
+                                Pas-à-pas
+                            </button>
+                            <button class="toggle-btn" id="continuousModeBtn" onclick="setControllerMode('continuous')">
+                                Continu
+                            </button>
+                        </div>
+
+                        <!-- Step Mode Controls -->
+                        <div class="step-controls" id="stepControls">
+                            <div class="sensitivity-header">
+                                <h4>Sensibilité du pas</h4>
+                                <div class="xy-coupling" id="xyCoupling" onclick="toggleCoupling()">
+                                    X 🔓 Y
+                                </div>
+                            </div>
+                            <!-- XY Coupled Control -->
+                            <div class="axis-control xy-coupled" id="xyControl">
+                                <label>XY:</label>
+                                <input type="range" id="sensitivityXY" min="0.01" max="50" value="1" step="0.01">
+                                <input type="number" id="sensitivityXYInput" value="1" step="0.01" min="0.01">
+                                <div class="preset-mini">
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('xy', 'fine')">F</button>
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('xy', 'coarse')">C</button>
+                                </div>
+                                <button class="lock-btn" id="lockXYBtn" onclick="toggleLock('XY')">🔓</button>
+                            </div>
+                            <!-- Individual X Control (hidden by default) -->
+                            <div class="axis-control individual-axis" id="xControl" style="display: none;">
+                                <label>X:</label>
+                                <input type="range" id="sensitivityX" min="0.01" max="50" value="1" step="0.01">
+                                <input type="number" id="sensitivityXInput" value="1" step="0.01" min="0.01">
+                                <div class="preset-mini">
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('x', 'fine')">F</button>
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('x', 'coarse')">C</button>
+                                </div>
+                                <button class="lock-btn" id="lockXBtn" onclick="toggleLock('X')">🔓</button>
+                            </div>
+                            <!-- Individual Y Control (hidden by default) -->
+                            <div class="axis-control individual-axis" id="yControl" style="display: none;">
+                                <label>Y:</label>
+                                <input type="range" id="sensitivityY" min="0.01" max="50" value="1" step="0.01">
+                                <input type="number" id="sensitivityYInput" value="1" step="0.01" min="0.01">
+                                <div class="preset-mini">
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('y', 'fine')">F</button>
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('y', 'coarse')">C</button>
+                                </div>
+                                <button class="lock-btn" id="lockYBtn" onclick="toggleLock('Y')">🔓</button>
+                            </div>
+                            <!-- Z Control -->
+                            <div class="axis-control individual-axis" id="zControl">
+                                <label>Z:</label>
+                                <input type="range" id="sensitivityZ" min="0.01" max="50" value="0.5" step="0.01">
+                                <input type="number" id="sensitivityZInput" value="0.5" step="0.01" min="0.01">
+                                <div class="preset-mini">
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('z', 'fine')">F</button>
+                                    <button class="preset-mini-btn" onclick="setAxisPreset('z', 'coarse')">C</button>
+                                </div>
+                                <button class="lock-btn locked" id="lockZBtn" onclick="toggleLock('Z')">🔒</button>
+                            </div>
+                        </div>
+
+                        <!-- Continuous Mode Controls -->
+                        <div class="continuous-controls" id="continuousControls" style="display: none;">
+                            <div class="sensitivity-header">
+                                <h4>Vitesse de déplacement</h4>
+                            </div>
+                            <div class="axis-control">
+                                <label>XYZ:</label>
+                                <input type="range" id="speedSlider" min="0" max="100" value="50">
+                                <input type="number" id="speedInput" value="50" min="0" max="100">
+                                <div class="preset-mini">
+                                    <button class="preset-mini-btn" onclick="setSpeedPreset('slow')">F</button>
+                                    <button class="preset-mini-btn" onclick="setSpeedPreset('fast')">C</button>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+
+                    <!-- Absolute Mode Interface (Secondary) -->
+                    <div class="absolute-controls" id="absoluteControls">
+                        <!-- Position Inputs -->
+                        <div class="position-section">
+                            <div class="sensitivity-header">
+                                <h4>Position Cible</h4>
+                                <!-- XY Coupling Indicator -->
+                                <div class="xy-coupling" id="xyCouplingAbs" onclick="toggleCoupling()">
+                                    X 🔓 Y
+                                </div>
+                            </div>
+                            <div class="position-inputs-grid">
+                                <!-- Left Column: Position Inputs -->
+                                <div class="position-inputs">
+                                    <!-- XY Coupled Layout -->
+                                    <div class="xy-coupled-container" id="xyCoupledGroup">
+                                        <div class="xy-background">
+                                            <div class="input-group">
+                                                <label>X (mm):</label>
+                                                <input type="number" id="inputX" value="0" step="0.1">
+                                            </div>
+                                            <button class="get-btn" onclick="getCurrentAxis('x')" title="Récupérer X">🚩</button>
+                                            <div class="input-group">
+                                                <label>Y (mm):</label>
+                                                <input type="number" id="inputY" value="0" step="0.1">
+                                            </div>
+                                            <button class="get-btn" onclick="getCurrentAxis('y')" title="Récupérer Y">🚩</button>
+                                            <button class="lock-btn xy-lock-center" id="lockXYBtnAbs" onclick="toggleLock('XY')">🔓</button>
+                                        </div>
+                                    </div>
+                                    <!-- XY Separate Layout -->
+                                    <div class="xy-separate-group" id="xySeparateGroup">
+                                        <div class="input-group">
+                                            <label>X (mm):</label>
+                                            <input type="number" id="inputXSep" value="0" step="0.1">
+                                            <button class="get-btn" onclick="getCurrentAxis('x')" title="Récupérer X">🚩</button>
+                                            <button class="lock-btn" id="lockXBtnAbs" onclick="toggleLock('X')">🔓</button>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Y (mm):</label>
+                                            <input type="number" id="inputYSep" value="0" step="0.1">
+                                            <button class="get-btn" onclick="getCurrentAxis('y')" title="Récupérer Y">🚩</button>
+                                            <button class="lock-btn" id="lockYBtnAbs" onclick="toggleLock('Y')">🔓</button>
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Z (mm):</label>
+                                        <input type="number" id="inputZ" value="0" step="0.1">
+                                        <button class="get-btn" onclick="getCurrentAxis('z')" title="Récupérer Z">🚩</button>
+                                        <button class="lock-btn locked" id="lockZBtnAbs" onclick="toggleLock('Z')">🔒</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right Column: Get All Position Button -->
+                                <div class="get-position-column">
+                                    <button class="get-all-btn" onclick="getCurrentAxis('all')" title="Récupérer toutes les positions">
+                                        🚩<br>Position<br>Actuelle
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="actions-section">
+                            <h4>Actions</h4>
+                            <div class="absolute-actions">
+                                <button class="action-btn primary" id="goToPoint" onclick="goToAbsolute()">
+                                    📍 Aller à la Position
+                                </button>
+                                <div class="home-actions-grid">
+                                    <div class="home-actions">
+                                        <button class="action-btn" id="homeXYBtn" onclick="goHome('xy')">🏠 Home XY</button>
+                                        <button class="lock-btn" id="lockHomeXYBtn" onclick="toggleLock('HomeXY')">🔓</button>
+                                    </div>
+                                    <div class="home-actions">
+                                        <button class="action-btn" id="homeXYZBtn" onclick="goHome('xyz')">🏠 Home XYZ</button>
+                                        <button class="lock-btn" id="lockHomeXYZBtn" onclick="toggleLock('HomeXYZ')">🔓</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="tab-panel" id="settingsTabContent">
+
+                    
+                    <!-- Stage Connection -->
+                    <details>
+                        <summary>Stage connection</summary>
+                        
+                        <!-- Connexion en premier -->
+                        <div class="setting-group">
+                            <div class="connection-area">
+                                <div class="connection-status">
+                                    <div class="status-indicator" id="connectionStatus"></div>
+                                    <span id="connectionText">Déconnecté</span>
+                                </div>
+                                <button id="connectBtn" onclick="toggleConnection()" class="connect-button">Connecter</button>
+                            </div>
+                            <!-- Barre de chargement -->
+                            <div id="connectionProgress" class="progress-bar" style="display: none;">
+                                <div class="progress-fill"></div>
+                                <span class="progress-text">Connexion en cours...</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuration -->
+                        <div class="setting-group">
+                            <div style="display: flex; gap: 12px; align-items: end;">
+                                <div style="flex: 1;">
+                                    <label>Port série</label>
+                                    <div class="input-with-buttons">
+                                        <select id="serialPort">
+                                            <option value="/dev/ttyUSB0" selected>/dev/ttyUSB0</option>
+                                        </select>
+                                        <button onclick="resetSerialPort()" title="Reset à /dev/ttyUSB0 + actualiser">↻</button>
+                                    </div>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label>Baudrate</label>
+                                    <div class="input-with-buttons">
+                                        <select id="baudRate">
+                                            <option value="9600">9600</option>
+                                            <option value="19200">19200</option>
+                                            <option value="38400">38400</option>
+                                            <option value="57600">57600</option>
+                                            <option value="115200" selected>115200</option>
+                                            <option value="230400">230400</option>
+                                            <option value="250000">250000</option>
+                                        </select>
+                                        <button onclick="resetBaudRate()" title="Reset à 115200 + actualiser">↻</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contrôles Enderscope (visible seulement si connecté) -->
+                        <div id="enderscopeControls" style="display: none;">
+                            <div class="setting-group">
+                                <h5>🎮 Contrôles</h5>
+                                <div class="control-buttons">
+                                    <button onclick="sendBeep()">🔊 BIP</button>
+                                    <button onclick="homeEnderscope()">🏠 HOME</button>
+                                    <button onclick="resetEnderscope()">🔄 RESET</button>
+                                    <button onclick="syncEnderscopePosition()">🔄 SYNC</button>
+                                    <button onclick="getEnderscopeInfo()">📝 INFO</button>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-group">
+                                <h5>🔧 G-code</h5>
+                                <div class="gcode-input">
+                                    <input type="text" id="gcodeInput" placeholder="Entrez votre G-code..." onkeypress="handleGcodeEnter(event)">
+                                    <button onclick="sendGcode()">🚀 Envoyer</button>
+                                    <button onclick="showGcodeHelp()" title="Aide G-code">❓</button>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <!-- Plateau -->
+                    <details>
+                        <summary>Plateau</summary>
+                        <div class="setting-group">
+                            <label>Profils prédéfinis</label>
+                            <button onclick="openTemplateModal()" class="template-btn">Choisir un profil</button>
+                            <div id="selectedProfile" style="display: none; margin-top: 8px; padding: 8px; background: var(--panel-bg); border-radius: 4px; font-size: 12px;">
+                                <strong id="profileName"></strong> - <span id="profileDimensions"></span>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label>Dimensions manuelles (mm)</label>
+                            <div class="dimension-inputs">
+                                <div class="dimension-input">
+                                    <label>X</label>
+                                    <input type="number" id="plateauX" value="200" min="10" max="1000" step="1">
+                                </div>
+                                <div class="dimension-input">
+                                    <label>Y</label>
+                                    <input type="number" id="plateauY" value="200" min="10" max="1000" step="1">
+                                </div>
+                                <div class="dimension-input">
+                                    <label>Z</label>
+                                    <input type="number" id="plateauZ" value="100" min="10" max="500" step="1">
+                                </div>
+                            </div>
+                            <button onclick="validatePlateauSize()" class="validate-btn">Valider</button>
+                        </div>
+                    </details>
+                    
+                    <!-- Historique -->
+                    <details>
+                        <summary>Historique</summary>
+                        <div class="setting-group">
+                            <div class="history-management">
+                                <button onclick="deactivateControllerMode(); clearHistory()" class="history-btn">Effacer</button>
+                                <button onclick="deactivateControllerMode(); saveTrack()" class="history-btn">Sauver</button>
+                                <button onclick="deactivateControllerMode(); loadTrack()" class="history-btn">Charger</button>
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <!-- Personnalisation -->
+                    <details>
+                        <summary>Personnalisation</summary>
+                        <div class="setting-group">
+                            <div class="theme-settings">
+                                <div class="setting-row">
+                                    <label>Profil utilisateur</label>
+                                    <select id="profileSelector" onchange="changeUserProfile()">
+                                        <option value="expert">Expert (Discret/Continu)</option>
+                                        <option value="scientific">Scientifique (Technique)</option>
+                                        <option value="public">Grand Public (Étape/Fluide)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="setting-row">
+                                    <label>Thème visuel</label>
+                                    <select id="themeSelector" onchange="changeVisualTheme()">
+                                        <option value="dark">Sombre</option>
+                                        <option value="light">Clair</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="setting-row">
+                                    <label>Langue</label>
+                                    <select id="languageSelector" onchange="changeLanguage()">
+                                        <option value="fr">Français</option>
+                                        <option value="en">English</option>
+                                        <option value="de">Deutsch</option>
+                                        <option value="es">Español</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="profile-description" id="profileDescription">
+                                    <small>Mode expert avec terminologie scientifique et paramètres avancés</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <button onclick="openDisplayModal()" class="display-btn">Gérer les affichages</button>
+                        </div>
+                    </details>
+                    
+                    <!-- Config Actions -->
+                    <div class="config-actions">
+                        <button onclick="saveConfig()">Sauver config</button>
+                        <button onclick="loadConfig()">Charger config</button>
+                        <button onclick="resetToDefault()">Default</button>
+                    </div>
+                </div>
+
+                <!-- Modal G-code Help -->
+                        <div id="gcodeHelpModal" class="modal" style="display: none;">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>🔧 Aide G-code</h3>
+                                    <button class="modal-close" onclick="closeGcodeHelp()">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <h4>Commandes de base:</h4>
+                                    <ul>
+                                        <li><strong>G28</strong> - Home tous les axes</li>
+                                        <li><strong>G0 X10 Y5</strong> - Déplacement rapide</li>
+                                        <li><strong>G1 X10 Y5 F1000</strong> - Déplacement linéaire</li>
+                                        <li><strong>G90</strong> - Mode absolu</li>
+                                        <li><strong>G91</strong> - Mode relatif</li>
+                                    </ul>
+                                    <h4>Commandes système:</h4>
+                                    <ul>
+                                        <li><strong>M115</strong> - Informations firmware</li>
+                                        <li><strong>M114</strong> - Position actuelle</li>
+                                        <li><strong>M300</strong> - Bip sonore</li>
+                                        <li><strong>M999</strong> - Reset/Redémarrage</li>
+                                        <li><strong>M112</strong> - Arrêt d'urgence</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Templates -->
+                        <div id="templateModal" class="modal" style="display: none;">
+                            <div class="modal-content template-modal">
+                                <div class="modal-header">
+                                    <h3>📁 Sélectionner un Profil</h3>
+                                    <button class="modal-close" onclick="closeTemplateModal()">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="template-search">
+                                        <input type="text" id="templateSearch" placeholder="Rechercher un profil..." oninput="filterTemplateDropdown()" onkeydown="handleSearchKeydown(event)">
+                                        <select id="templateDropdown" onchange="selectTemplate()" onclick="selectTemplate()" onkeydown="handleDropdownKeydown(event)">
+                                            <option value="">-- Sélectionner --</option>
+                                        </select>
+                                    </div>
+                                    <div id="templateCard" class="template-card" style="display: none;">
+                                        <!-- Profil details will be shown here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Display Settings -->
+                        <div id="displayModal" class="modal preview-modal" style="display: none;">
+                            <div class="modal-content draggable-modal">
+
+                                <div class="modal-body">
+                                    <!-- Onglets de navigation -->
+                                    <div class="display-tabs">
+                                        <button class="display-tab active" onclick="switchDisplayTab('interface')">Interface</button>
+                                        <button class="display-tab" onclick="switchDisplayTab('colors')">Couleurs</button>
+                                    </div>
+                                    
+                                    <div class="display-settings">
+                                        <!-- Interface Tab -->
+                                        <div class="display-tab-content active" id="interfaceTab">
+                                            <div class="display-group">
+                                                <h4>📑 Panneaux principaux</h4>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showZPanel" checked onchange="toggleZPanel()">
+                                                    <span class="checkmark"></span>
+                                                    Panneau Z (visualisation)
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showStatusSection" checked onchange="toggleStatusSection()">
+                                                    <span class="checkmark"></span>
+                                                    Section État actuel
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showOthersTab" checked onchange="toggleOthersTab()">
+                                                    <span class="checkmark"></span>
+                                                    Onglet Autres (Listes, IA...)
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showControllerLog" onchange="toggleControllerLog()">
+                                                    <span class="checkmark"></span>
+                                                    Log contrôleur
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showFuturePositionsXY" checked onchange="toggleFuturePositionsXY()">
+                                                    <span class="checkmark"></span>
+                                                    Positions futures XY
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showFuturePositionsZ" checked onchange="toggleFuturePositionsZ()">
+                                                    <span class="checkmark"></span>
+                                                    Positions futures Z
+                                                </label>
+                                            </div>
+                                            
+
+                                            
+                                            <div class="display-group">
+                                                <h4>📈 Historique</h4>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showHistoryPanel" checked onchange="toggleHistoryPanel()">
+                                                    <span class="checkmark"></span>
+                                                    Panneau historique
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showGraphs" checked onchange="toggleGraphs()">
+                                                    <span class="checkmark"></span>
+                                                    Graphiques X Y Z
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showPositionXYHistory" checked onchange="togglePositionXYHistory()">
+                                                    <span class="checkmark"></span>
+                                                    Positions XY visitées
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showPositionZHistory" checked onchange="togglePositionZHistory()">
+                                                    <span class="checkmark"></span>
+                                                    Positions Z visitées
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showTrackPositions" checked onchange="toggleTrackPositions()">
+                                                    <span class="checkmark"></span>
+                                                    Track positions
+                                                </label>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="showTrackFree" checked onchange="toggleTrackFree()">
+                                                    <span class="checkmark"></span>
+                                                    Track continu
+                                                </label>
+
+                                            </div>
+                                            
+                                            <div class="display-group" id="snakeModeGroup" style="display: none;">
+                                                <h4>🐍 Mode Snake</h4>
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="enableSnakeMode" checked onchange="toggleSnakeMode()">
+                                                    <span class="checkmark"></span>
+                                                    Activer mode snake
+                                                </label>
+                                                <div class="snake-slider" style="margin-top: 12px;">
+                                                    <label>Points max: <span id="snakePointsValue">2000</span></label>
+                                                    <input type="range" id="snakePointsSlider" min="100" max="5000" value="2000" step="100" oninput="updateSnakePoints()" onchange="updateSnakePoints()">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Colors Tab -->
+                                        <div class="display-tab-content" id="colorsTab">
+                                            <div class="display-group">
+                                                <h4>🖼️ Canvas XY</h4>
+                                                <div class="color-grid">
+                                                    <div class="color-control">
+                                                        <label>Position actuelle</label>
+                                                        <input type="color" id="colorCurrentPosition" value="#4f9eff" onchange="updateDisplayColor('positionColor', this.value)">
+                                                        <span class="color-preview" style="background: #4f9eff;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Position future</label>
+                                                        <input type="color" id="colorFuturePosition" value="#ffc107" onchange="updateDisplayColor('futurePosition', this.value)">
+                                                        <span class="color-preview" style="background: #ffc107;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Track positions</label>
+                                                        <input type="color" id="colorTrackPath" value="#10b981" onchange="updateDisplayColor('trackColor', this.value)">
+                                                        <span class="color-preview" style="background: #10b981;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Track libre</label>
+                                                        <input type="color" id="colorTrackFree" value="#ff8c00" onchange="updateDisplayColor('trackFreeColor', this.value)">
+                                                        <span class="color-preview" style="background: #ff8c00;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Historique</label>
+                                                        <input type="color" id="colorHistoryPositions" value="#10b981" onchange="updateDisplayColor('historyPositionsColor', this.value)">
+                                                        <span class="color-preview" style="background: #10b981;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Fond du plateau</label>
+                                                        <input type="color" id="colorMapBackground" value="#1a1a1a" onchange="updateDisplayColor('mapBackground', this.value)">
+                                                        <span class="color-preview" style="background: #1a1a1a;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Grille</label>
+                                                        <input type="color" id="colorGrid" value="#404040" onchange="updateDisplayColor('gridColor', this.value)">
+                                                        <span class="color-preview" style="background: #404040;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Contour du cadre</label>
+                                                        <input type="color" id="colorOriginAxes" value="#ef4444" onchange="updateDisplayColor('originAxes', this.value)">
+                                                        <span class="color-preview" style="background: #ef4444;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Axe X</label>
+                                                        <input type="color" id="colorAxisX" value="#ff4444" onchange="updateDisplayColor('axisXColor', this.value)">
+                                                        <span class="color-preview" style="background: #ff4444;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Axe Y</label>
+                                                        <input type="color" id="colorAxisY" value="#44ff44" onchange="updateDisplayColor('axisYColor', this.value)">
+                                                        <span class="color-preview" style="background: #44ff44;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Extérieur</label>
+                                                        <input type="color" id="colorOutside" value="#2c2c2c" onchange="updateDisplayColor('outsideColor', this.value)">
+                                                        <span class="color-preview" style="background: #2c2c2c;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Barre d'échelle</label>
+                                                        <input type="color" id="colorScaleBar" value="#ffffff" onchange="updateDisplayColor('scaleBarColor', this.value)">
+                                                        <span class="color-preview" style="background: #ffffff;"></span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="display-group">
+                                                <h4>📏 Canvas Z</h4>
+                                                <div class="color-grid">
+                                                    <div class="color-control">
+                                                        <label>Fond</label>
+                                                        <input type="color" id="colorZBackground" value="#1a1a1a" onchange="updateDisplayColor('zBackground', this.value)">
+                                                        <span class="color-preview" style="background: #1a1a1a;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Position actuelle</label>
+                                                        <input type="color" id="colorZCurrentPosition" value="#4f9eff" onchange="updateDisplayColor('zCurrentPosition', this.value)">
+                                                        <span class="color-preview" style="background: #4f9eff;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Origine</label>
+                                                        <input type="color" id="colorZOrigin" value="#ff4444" onchange="updateDisplayColor('zOriginColor', this.value)">
+                                                        <span class="color-preview" style="background: #ff4444;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Échelle</label>
+                                                        <input type="color" id="colorZScale" value="#ffffff" onchange="updateDisplayColor('zScaleColor', this.value)">
+                                                        <span class="color-preview" style="background: #ffffff;"></span>
+                                                    </div>
+                                                    <div class="color-control">
+                                                        <label>Historique</label>
+                                                        <input type="color" id="colorZHistory" value="#10b981" onchange="updateDisplayColor('zHistoryPosition', this.value)">
+                                                        <span class="color-preview" style="background: #10b981;"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+
+                                    </div>
+                                </div>
+                                <div class="modal-actions">
+                                    <div class="action-buttons">
+                                        <button id="resetColorsBtn" class="modal-btn reset-btn" onclick="resetColors()" style="display: none;">Reset</button>
+                                        <button id="randomColorsBtn" class="modal-btn random-btn" onclick="randomizeColors()" style="display: none;">Aléatoire</button>
+                                        <button id="resetInterfaceBtn" class="modal-btn reset-btn" onclick="resetInterface()" style="display: block;">Reset</button>
+                                    </div>
+                                    <div class="modal-buttons">
+                                        <button onclick="closeDisplayModal()" class="modal-btn cancel-btn">Annuler</button>
+                                        <button onclick="applyDisplaySettings()" class="modal-btn apply-btn">Valider</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                <!-- Autres Panel -->
+                <div class="tab-panel" id="othersTabContent">
+                    <h4>Fonctionnalités Avancées</h4>
+                    <div class="others-section">
+                        <div class="feature-group">
+                            <h5>🌐 Contrôleurs Universels</h5>
+                            <button class="feature-btn" onclick="activateExternalController()">🎮 Contrôleur Universel</button>
+                            <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                                Support: 🎹 MIDI • 🎮 Gamepad • ⌨️ Clavier • 🔌 HID
+                            </div>
+                        </div>
+                        <div class="feature-group">
+                            <h5>Listes & Séquences</h5>
+                            <button class="feature-btn" onclick="openLists()">📋 Gestion des Listes</button>
+                            <button class="feature-btn" onclick="openSequences()">🔄 Séquences</button>
+                        </div>
+                        <div class="feature-group">
+                            <h5>Contrôle Équipement</h5>
+                            <button class="feature-btn" onclick="openDrivers()">🔬 Drivers Enderscope</button>
+                        </div>
+                        <div class="feature-group">
+                            <h5>Assistant IA</h5>
+                            <button class="feature-btn" onclick="openEnderman()">🤖 Enderman</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lists Panel -->
+                <div class="tab-panel" id="listsTabContent">
+                    <!-- Lists interface will be loaded here -->
+                </div>
+                
+                <!-- Controller Panel -->
+                <div class="tab-panel" id="controllerTabContent">
+                    <h4>🎮 Contrôleur Externe</h4>
+                    
+                    <div class="setting-group">
+                        <label>Périphérique</label>
+                        <div class="input-with-buttons">
+                            <select id="deviceSelector" onchange="selectDevice()">
+                                <option value="">-- Sélectionnez un périphérique --</option>
+                            </select>
+                            <button onclick="refreshDevices()" title="Actualiser la liste">🔄</button>
+                        </div>
+                        
+                        <div id="deviceStatus" style="margin-top: 8px; padding: 6px; border-radius: 4px; display: none; font-size: 11px;">
+                            <span id="deviceStatusText"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label>Actions</label>
+                        <button onclick="window.ExternalController.openMappingModal()" class="validate-btn">🗺️ Configurer Mapping</button>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label>Configuration actuelle</label>
+                        <div id="mappingList" style="font-size: 11px; color: #888; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; min-height: 40px; border: 1px solid rgba(255,255,255,0.1);">
+                            Aucun mapping configuré
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapping Modal -->
+        <div id="mappingModal" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h3>🗺️ Configuration Mapping</h3>
+                    <button class="modal-close" onclick="window.ExternalController.closeMappingModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Onglets de navigation -->
+                    <div class="display-tabs">
+                        <button class="display-tab active" onclick="window.ExternalController.switchMappingTab('navigation')">Navigation</button>
+                        <button class="display-tab" onclick="window.ExternalController.switchMappingTab('functions')">Fonctions</button>
+                        <button class="display-tab" onclick="window.ExternalController.switchMappingTab('presets')">Presets</button>
+                    </div>
+                    
+                    <!-- Onglet Navigation -->
+                    <div class="display-tab-content active" id="navigationMappingTab">
+                        <div class="setting-group">
+                            <label>Contrôles Directionnels</label>
+                            <div style="display: flex; gap: 24px; align-items: flex-start; justify-content: center;">
+                                <!-- Croix directionnelle -->
+                                <div class="arrow-pad" style="position: relative;">
+                                    <div class="arrow-row">
+                                        <div></div>
+                                        <div style="text-align: center;">
+                                            <button id="mapUp" onclick="window.ExternalController.startMapping('up')" class="arrow-btn">▲</button>
+                                            <div id="mapUpValue" style="font-size: 8px; color: var(--success); margin-top: 2px;">Non mappé</div>
+                                        </div>
+                                        <div></div>
+                                    </div>
+                                    <div class="arrow-row">
+                                        <div style="text-align: center;">
+                                            <button id="mapLeft" onclick="window.ExternalController.startMapping('left')" class="arrow-btn">◄</button>
+                                            <div id="mapLeftValue" style="font-size: 8px; color: var(--success); margin-top: 2px;">Non mappé</div>
+                                        </div>
+                                        <div class="arrow-center">XY</div>
+                                        <div style="text-align: center;">
+                                            <button id="mapRight" onclick="window.ExternalController.startMapping('right')" class="arrow-btn">►</button>
+                                            <div id="mapRightValue" style="font-size: 8px; color: var(--success); margin-top: 2px;">Non mappé</div>
+                                        </div>
+                                    </div>
+                                    <div class="arrow-row">
+                                        <div></div>
+                                        <div style="text-align: center;">
+                                            <button id="mapDown" onclick="window.ExternalController.startMapping('down')" class="arrow-btn">▼</button>
+                                            <div id="mapDownValue" style="font-size: 8px; color: var(--success); margin-top: 2px;">Non mappé</div>
+                                        </div>
+                                        <div></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Contrôles Z -->
+                                <div class="z-controls-right">
+                                    <div style="text-align: center;">
+                                        <button id="mapZUp" onclick="window.ExternalController.startMapping('zUp')" class="z-btn">▲</button>
+                                        <div id="mapZUpValue" style="font-size: 8px; color: var(--success); margin-top: 2px;">Non mappé</div>
+                                    </div>
+                                    <div class="z-center">Z</div>
+                                    <div style="text-align: center;">
+                                        <button id="mapZDown" onclick="window.ExternalController.startMapping('zDown')" class="z-btn">▼</button>
+                                        <div id="mapZDownValue" style="font-size: 8px; color: var(--success); margin-top: 2px;">Non mappé</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Onglet Fonctions -->
+                    <div class="display-tab-content" id="functionsMappingTab">
+                        <div class="setting-group">
+                            <label>Recherche</label>
+                            <input type="text" id="functionSearch" placeholder="Rechercher une fonction..." oninput="window.ExternalController.filterFunctions()" style="width: 100%; padding: 8px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); border-radius: 4px;">
+                        </div>
+                        
+                        <div class="setting-group">
+                            <label>Catégories</label>
+                            <div id="functionCategories">
+                                <!-- Categories will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Onglet Presets -->
+                    <div class="display-tab-content" id="presetsMappingTab">
+                        <div class="setting-group">
+                            <label>Configurations Prédéfinies</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div class="template-card" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--panel-bg);">
+                                    <h4 style="margin: 0 0 8px 0; color: var(--text);">🎹 MIDI Controller</h4>
+                                    <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 8px 0;">Configuration pour Akai MPK Mini</p>
+                                    <button onclick="window.ExternalController.loadMidiPreset()" class="validate-btn" style="width: 100%;">Appliquer</button>
+                                </div>
+                                <div class="template-card" style="padding: 12px; border: 1px solid var(--border); border-radius: 4px; background: var(--panel-bg);">
+                                    <h4 style="margin: 0 0 8px 0; color: var(--text);">🎮 Gamepad</h4>
+                                    <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 8px 0;">Configuration Xbox/PlayStation</p>
+                                    <button onclick="window.ExternalController.loadGamepadPreset()" class="validate-btn" style="width: 100%;">Appliquer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mappings actifs -->
+                    <div class="setting-group" style="margin-top: 16px;">
+                        <label>Mappings Actifs</label>
+                        <div id="activeMappings" style="max-height: 100px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); padding: 8px;">
+                            <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">Aucun mapping configuré</div>
+                        </div>
+                    </div>
+                    
+                    <div id="mappingStatus" style="margin-top: 12px; padding: 8px; border-radius: 4px; display: none; text-align: center; font-size: 11px;">
+                        <span id="mappingStatusText"></span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <div class="config-actions">
+                        <button onclick="window.ExternalController.saveMappingConfig()">Sauver config</button>
+                        <button onclick="window.ExternalController.loadMappingConfig()">Charger config</button>
+                        <button onclick="window.ExternalController.clearMappingConfig()">Reset</button>
+                    </div>
+                    <div class="modal-buttons">
+                        <button onclick="window.ExternalController.closeMappingModal()" class="modal-btn cancel-btn">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel - Canvas Visualization -->
+        <div class="center-panel">
+            <div class="canvas-header">
+                <div class="app-title">
+                    EnderTrack
+                </div>
+                <button class="emergency-btn" id="emergencyStop" onclick="emergencyStop()">
+                    🛑 STOP
+                </button>
+            </div>
+            
+            <div class="canvas-container">
+                <!-- Main Canvas (XY View) -->
+                <div class="main-canvas">
+                    <canvas id="mapCanvas" width="600" height="600"></canvas>
+                    <div class="canvas-overlay">
+                        <div class="scale-info">
+                            <span id="mouseCoords" style="display: inline-block; width: 140px; font-family: monospace; text-align: left;">X:  ---- Y:  ----</span>  | 
+                            Plateau: <span id="platformSize">200×200mm</span> <span id="profileInfo" style="display: none; color: #666;">(<span id="profileNameCanvas"></span>)</span>  | 
+                            Zoom: <span id="zoomLevel">1.0x</span> | 
+                            Pan: <span id="panOffset" style="font-family: monospace; width: 80px; display: inline-block;">X:0 Y:0</span> | 
+                            <span id="resolution" style="font-family: monospace; color: #666;">600x600px</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Z Visualization Panel -->
+                <div class="z-visualization-panel" id="zVisualizationPanel" style="display: flex;">
+                    <div class="z-scale" id="zScale">
+                        <!-- Z axis ruler with markings -->
+                        <div class="z-markings" id="zMarkings"></div>
+                    </div>
+
+                    <div class="z-preview" id="zPreview"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Status and History -->
+        <div class="right-panel">
+            <!-- Current Status -->
+            <div class="status-section">
+                <h4 id="statusSectionTitle">📍 État Actuel - SIMULATEUR</h4>
+                <div class="status-display">
+                    <div class="status-light" id="statusLight"></div>
+                    <div class="current-position" id="currentPos">
+                        <div>X: <span id="posX">0.0</span> mm</div>
+                        <div>Y: <span id="posY">0.0</span> mm</div>
+                        <div>Z: <span id="posZ">0.0</span> mm</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mini Graphs -->
+            <div class="graphs-section">
+                <h4>📈 Historique</h4>
+                <div class="mini-graphs">
+                    <div class="mini-graph">
+                        <label>X:</label>
+                        <canvas id="gX" width="180" height="40"></canvas>
+                    </div>
+                    <div class="mini-graph">
+                        <label>Y:</label>
+                        <canvas id="gY" width="180" height="40"></canvas>
+                    </div>
+                    <div class="mini-graph">
+                        <label>Z:</label>
+                        <canvas id="gZ" width="180" height="40"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Position History -->
+            <div class="history-section">
+                <h4>📋 Historique des Positions</h4>
+                <div class="history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Temps</th>
+                                <th>X</th>
+                                <th>Y</th>
+                                <th>Z</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- History entries will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Last Command -->
+            <div class="navigation-log" id="navigationLog" style="display: none;">
+                <h4>⌨️ Navigation Commande</h4>
+                <div class="last-command" id="lastCommand">
+                    Aucune commande
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Visualizer (Hidden by default) -->
+    <canvas id="audioVisualizer" width="300" height="100" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; border: 2px solid #ccc; border-radius: 8px; background: white;"></canvas>
+
+    <!-- Force Z Panel Visibility (CRITICAL - FIRST) -->
+    <script src="force-z-panel.js"></script>
+    
+    <!-- Script Loading Order (Critical) -->
+    <!-- Core System -->
+    <script src="modules/state/state.js"></script>
+    <script src="modules/utils/math.js"></script>
+    <script src="modules/utils/graphics.js"></script>
+    <script src="modules/utils/events.js"></script>
+    <script src="modules/utils/validation.js"></script>
+
+    <!-- Canvas System -->
+    <script src="modules/canvas/coordinates.js"></script>
+    <script src="modules/canvas/canvas.js"></script>
+    <script src="modules/canvas/z-visualization.js"></script>
+    <script src="modules/canvas/renderer.js"></script>
+    <script src="modules/canvas/interactions.js"></script>
+
+    <!-- Navigation System -->
+    <script src="modules/navigation/movement.js"></script>
+    <script src="modules/navigation/positioning.js"></script>
+    <script src="modules/navigation/controls.js"></script>
+    <script src="modules/navigation/keyboard.js"></script>
+    <script src="modules/navigation/keyboard-mode.js"></script>
+
+    <!-- Theme System -->
+    <script src="modules/themes/theme-manager.js"></script>
+    
+    <!-- UI System -->
+    <script src="modules/ui/notifications.js"></script>
+    <script src="modules/ui/modals.js"></script>
+    <script src="modules/ui/controls.js"></script>
+    <script src="modules/ui/get-button-events.js"></script>
+    <script src="modules/ui/panels.js"></script>
+    <script src="modules/ui/tabs.js"></script>
+    <script src="modules/ui/ui.js"></script>
+    <script src="modules/ui/theme.js"></script>
+    <script src="modules/ui/theme-settings.js"></script>
+    <script src="modules/ui/history-settings.js"></script>
+    <script src="modules/ui/plateau-templates.js"></script>
+    <script src="modules/ui/color-manager.js"></script>
+
+    <!-- Enderscope Integration -->
+    <script src="enderscope/connection.js"></script>
+    <script src="enderscope/enderscope-movement.js"></script>
+
+    <!-- Core Application -->
+    <script src="core/plugin-manager.js"></script>
+    <script src="core/renderer.js"></script>
+    <script src="core/coordinator.js"></script>
+    <script src="core/api.js"></script>
+    <script src="core/app.js"></script>
+
+    <!-- External Controller -->
+    <script src="external-controller.js"></script>
+    
+    <!-- Lists Module -->
+    <link rel="stylesheet" href="modules/lists/lists.css">
+    <script src="modules/lists/lists.js"></script>
+    
+    <!-- Bootstrap -->
+    <script src="main.js"></script>
+    <script src="init-display.js"></script>
+    
+    <script>
+    // Initialize templates after page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (window.PlateauTemplates) {
+        await window.PlateauTemplates.init();
+      }
+      
+      // Initialize coordinate system with plateau dimensions
+      if (window.EnderTrack?.Coordinates && window.EnderTrack?.State) {
+        const state = window.EnderTrack.State.get();
+        window.EnderTrack.Coordinates.updateParameters({
+          plateauDimensions: state.plateauDimensions || { x: 200, y: 200, z: 100 }
+        });
+      }
+      
+      // Initialize Lists module
+      if (window.EnderTrack?.Lists?.init) {
+        window.EnderTrack.Lists.init();
+      }
+    });
+    </script>
+    
+    <!-- Debug switchTab function -->
+    <script>
+    function switchTab(tabId) {
+        console.log('[DEBUG] switchTab called with:', tabId);
+        
+        // Désactiver le module Lists si on quitte l'onglet lists
+        const currentActiveTab = document.querySelector('.tab-btn.active');
+        if (currentActiveTab && currentActiveTab.id === 'listsTab' && tabId !== 'lists') {
+            console.log('[DEBUG] Leaving lists tab, deactivating Lists module');
+            if (window.EnderTrack?.Lists?.deactivate) {
+                window.EnderTrack.Lists.deactivate();
+            }
+        }
+        
+        // Hide all tab panels
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.remove('active');
+        });
+        
+        // Remove active class from all tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab panel
+        const targetPanel = document.getElementById(tabId + 'TabContent');
+        if (targetPanel) {
+            targetPanel.classList.add('active');
+        }
+        
+        // Activate selected tab button
+        const targetBtn = document.getElementById(tabId + 'Tab');
+        if (targetBtn) {
+            targetBtn.classList.add('active');
+        }
+        
+        // Activer le module Lists si on entre dans l'onglet lists
+        if (tabId === 'lists') {
+            console.log('[DEBUG] Entering lists tab, activating Lists module');
+            if (window.EnderTrack?.Lists?.activate) {
+                window.EnderTrack.Lists.activate();
+            }
+        }
+        
+        // Forcer le re-rendu du canvas pour mettre à jour les overlays
+        if (window.EnderTrack?.Canvas?.requestRender) {
+            window.EnderTrack.Canvas.requestRender();
+        }
+    }
+    
+    // Display modal tab switching
+    function switchDisplayTab(tabName) {
+        // Remove active class from all tabs and contents
+        document.querySelectorAll('.display-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.display-tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to selected tab and content
+        const tabIndex = tabName === 'interface' ? 1 : tabName === 'colors' ? 2 : 3;
+        document.querySelector(`.display-tab:nth-child(${tabIndex})`).classList.add('active');
+        document.getElementById(tabName + 'Tab').classList.add('active');
+        
+        // Show/hide appropriate action buttons
+        document.getElementById('resetColorsBtn').style.display = tabName === 'colors' ? 'inline-block' : 'none';
+        document.getElementById('randomColorsBtn').style.display = tabName === 'colors' ? 'inline-block' : 'none';
+        document.getElementById('resetInterfaceBtn').style.display = tabName === 'interface' ? 'inline-block' : 'none';
+    }
+    </script>
+</body>
+</html>
+function saveConfig() {
+    console.log('Saving configuration...');
+}
+
+function loadConfig() {
+    if (confirm('Charger une configuration remplacera les paramètres actuels. Continuer ?')) {
+        console.log('Loading configuration...');
+    }
+}
+
+function resetToDefault() {
+    if (confirm('Réinitialiser aux paramètres par défaut ? Cette action est irréversible.')) {
+        console.log('Resetting to default configuration...');
+    }
+}
+
+// Display settings functions
+function applyDisplaySettings() {
+    // Clear saved colors since we're applying changes
+    window.savedColors = null;
+    
+    // Force canvas re-render with custom colors
+    if (window.EnderTrack?.Canvas?.requestRender) {
+        window.EnderTrack.Canvas.requestRender();
+    }
+    
+    // Also update Z visualization
+    if (window.EnderTrack?.ZVisualization?.render) {
+        window.EnderTrack.ZVisualization.render();
+    }
+    
+    const modal = document.getElementById('displayModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function closeDisplayModal() {
+    // Restore saved colors and input values on cancel
+    if (window.savedColors) {
+        window.customColors = {...window.savedColors};
+    }
+    
+    if (window.savedInputValues) {
+        Object.entries(window.savedInputValues).forEach(([inputId, value]) => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value = value;
+                const preview = input.parentElement.querySelector('.color-preview');
+                if (preview) {
+                    preview.style.background = value;
+                }
+            }
+        });
+    }
+    
+    if (window.EnderTrack?.Canvas?.requestRender) {
+        window.EnderTrack.Canvas.requestRender();
+    }
+    
+    const modal = document.getElementById('displayModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openDisplayModal() {
+    const modal = document.getElementById('displayModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Save current colors and input values for cancel functionality
+        window.savedColors = window.customColors ? {...window.customColors} : {};
+        window.savedInputValues = {};
+        
+        // Save current input values
+        const colorInputs = ['colorCurrentPosition', 'colorFuturePosition', 'colorTrackPath', 'colorGrid', 'colorOriginAxes', 'colorCrosshair', 'colorTrackFree', 'colorHistoryPositions'];
+        colorInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                window.savedInputValues[inputId] = input.value;
+            }
+        });
+        
+        // Initialize color inputs with current values
+        initializeColorInputs();
+        
+        // Show interface reset button by default (interface tab is active)
+        switchDisplayTab('interface');
+    }
+}
+
+function initializeColorInputs() {
+    const colorMappings = {
+        'colorCurrentPosition': 'positionColor',
+        'colorFuturePosition': 'futurePosition',
+        'colorTrackPath': 'trackColor',
+        'colorGrid': 'gridColor',
+        'colorOriginAxes': 'originAxes',
+        'colorCrosshair': 'crosshair'
+    };
+    
+    Object.entries(colorMappings).forEach(([inputId, colorType]) => {
+        const input = document.getElementById(inputId);
+        const preview = input?.parentElement?.querySelector('.color-preview');
+        if (input && preview) {
+            preview.style.background = input.value;
+        }
+    });
+}
+// Reset and randomize functions for display modal
+function resetColors() {
+    const defaultColors = {
+        positionColor: '#4f9eff',
+        futurePosition: '#ffc107',
+        trackColor: '#10b981',
+        gridColor: '#404040',
+        originAxes: '#ef4444',
+        crosshair: '#ffffff',
+        trackFreeColor: '#ff8c00',
+        historyPositionsColor: '#10b981',
+        axisXColor: '#ff4444',
+        axisYColor: '#44ff44',
+        outsideColor: '#2c2c2c',
+        zBackground: '#1a1a1a',
+        zCurrentPosition: '#4f9eff',
+        zOriginColor: '#ff4444',
+        zScaleColor: '#ffffff',
+        zHistoryPosition: '#10b981'
+    };
+    
+    // Update custom colors
+    window.customColors = {...defaultColors};
+    
+    // Update color inputs
+    const colorMappings = {
+        'colorCurrentPosition': 'positionColor',
+        'colorFuturePosition': 'futurePosition',
+        'colorTrackPath': 'trackColor',
+        'colorGrid': 'gridColor',
+        'colorOriginAxes': 'originAxes',
+        'colorCrosshair': 'crosshair',
+        'colorTrackFree': 'trackFreeColor',
+        'colorHistoryPositions': 'historyPositionsColor',
+        'colorAxisX': 'axisXColor',
+        'colorAxisY': 'axisYColor',
+        'colorOutside': 'outsideColor',
+        'colorZBackground': 'zBackground',
+        'colorZCurrentPosition': 'zCurrentPosition',
+        'colorZOrigin': 'zOriginColor',
+        'colorZScale': 'zScaleColor',
+        'colorZHistory': 'zHistoryPosition'
+    };
+    
+    Object.entries(colorMappings).forEach(([inputId, colorType]) => {
+        const input = document.getElementById(inputId);
+        const preview = input?.parentElement?.querySelector('.color-preview');
+        if (input && preview) {
+            input.value = defaultColors[colorType];
+            preview.style.background = defaultColors[colorType];
+        }
+    });
+    
+    // Re-render canvas
+    if (window.EnderTrack?.Canvas?.requestRender) {
+        window.EnderTrack.Canvas.requestRender();
+    }
+    if (window.EnderTrack?.ZVisualization?.render) {
+        window.EnderTrack.ZVisualization.render();
+    }
+}
+
+function randomizeColors() {
+    const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+    
+    const colorMappings = {
+        'colorCurrentPosition': 'positionColor',
+        'colorFuturePosition': 'futurePosition',
+        'colorTrackPath': 'trackColor',
+        'colorGrid': 'gridColor',
+        'colorOriginAxes': 'originAxes',
+        'colorCrosshair': 'crosshair',
+        'colorTrackFree': 'trackFreeColor',
+        'colorHistoryPositions': 'historyPositionsColor',
+        'colorAxisX': 'axisXColor',
+        'colorAxisY': 'axisYColor',
+        'colorOutside': 'outsideColor',
+        'colorZBackground': 'zBackground',
+        'colorZCurrentPosition': 'zCurrentPosition',
+        'colorZOrigin': 'zOriginColor',
+        'colorZScale': 'zScaleColor',
+        'colorZHistory': 'zHistoryPosition'
+    };
+    
+    Object.entries(colorMappings).forEach(([inputId, colorType]) => {
+        const input = document.getElementById(inputId);
+        const preview = input?.parentElement?.querySelector('.color-preview');
+        if (input && preview) {
+            const color = randomColor();
+            input.value = color;
+            preview.style.background = color;
+            updateDisplayColor(colorType, color);
+        }
+    });
+}
+
+function resetInterface() {
+    // Reset interface checkboxes to default state
+    const interfaceCheckboxes = [
+        'showNavigationTab', 'showZPanel', 'showStatusPanel', 'showOthersTab',
+        'showRelativeMode', 'showAbsoluteMode', 'showControllerMode', 'showSensitivityControls',
+        'showHistoryPanel', 'showGraphs', 'showTrackPositions', 'showTrackFree'
+    ];
+    
+    interfaceCheckboxes.forEach(checkboxId => {
+        const checkbox = document.getElementById(checkboxId);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+}
+
+function resetAdvanced() {
+    // Reset advanced checkboxes to default state
+    const advancedCheckboxes = [
+        'showHistoryZ', 'showHistoryXY', 'enableSnakeMode'
+    ];
+    
+    advancedCheckboxes.forEach(checkboxId => {
+        const checkbox = document.getElementById(checkboxId);
+        if (checkbox) {
+            checkbox.checked = checkboxId !== 'showControllerLog'; // All true except controller log
+        }
+    });
+    
+    // Reset snake points slider
+    const snakeSlider = document.getElementById('snakePointsSlider');
+    const snakeValue = document.getElementById('snakePointsValue');
+    if (snakeSlider && snakeValue) {
+        snakeSlider.value = '2000';
+        snakeValue.textContent = '2000';
+    }
+}
+
+// Function for snake points slider
+function updateSnakePoints() {
+    const slider = document.getElementById('snakePointsSlider');
+    const value = document.getElementById('snakePointsValue');
+    if (slider && value) {
+        value.textContent = slider.value;
+    }
+}
+

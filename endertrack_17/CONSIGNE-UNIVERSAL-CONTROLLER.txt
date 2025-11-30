@@ -1,0 +1,241 @@
+# 🎯 CONSIGNE : Universal Input Controller pour EnderTrack
+
+## 📋 CONTEXTE
+EnderTrack est un simulateur 3D de positionnement avec une architecture modulaire. 
+Il faut créer un système UNIVERSEL permettant de contrôler EnderTrack avec N'IMPORTE QUEL périphérique d'entrée.
+
+## 🎯 OBJECTIF FINAL
+Permettre à l'utilisateur de :
+1. Connecter n'importe quel périphérique (MIDI, Gamepad, Clavier, HID)
+2. Le mapper facilement sur les actions EnderTrack
+3. Contrôler le simulateur de manière fluide et sécurisée
+
+## 🏗️ ARCHITECTURE REQUISE
+
+### 1. BRIDGE PYTHON UNIVERSEL
+**Fichier : `universal-input-bridge.py`**
+
+```python
+# Structure de base requise :
+class UniversalInputBridge:
+    def scan_midi_devices(self):
+        # Utiliser aconnect -l + vérification USB réelle
+        # Ignorer : System, Midi Through, PipeWire-System, TiMidity
+        
+    def scan_gamepad_devices(self):
+        # Utiliser ls /dev/input/js* + cat /sys/class/input/js*/device/name
+        
+    def scan_hid_devices(self):
+        # Utiliser lsusb pour périphériques HID génériques
+        
+    def start_device_listener(self, device_id):
+        # MIDI : aseqdump -p CLIENT_ID:0
+        # Gamepad : jstest --event /dev/input/jsX
+```
+
+**Format de message standardisé :**
+```json
+{
+  "device_id": "midi_28",
+  "type": "note|cc|button|axis|key",
+  "control": 36,
+  "value": 127,
+  "timestamp": 1234567890
+}
+```
+
+**WebSocket sur port 8765** avec gestion des commandes :
+- `scan_devices` : Rescanner les périphériques
+- `start_listening` : Démarrer écoute d'un périphérique
+- `stop_listening` : Arrêter écoute
+
+### 2. INTERFACE JAVASCRIPT
+**Fichier : `external-controller.js`**
+
+**Fonctions principales requises :**
+```javascript
+class ExternalController {
+  constructor() {
+    this.availableFunctions = [
+      // 25+ fonctions EnderTrack par catégories :
+      // navigation, history, settings, display, plateau, enderscope
+    ];
+  }
+  
+  handleUniversalInput(inputData) {
+    // SÉCURITÉ CRITIQUE :
+    if (!this.isActive) return; // Contrôleur externe inactif
+    if (!window.EnderTrack?.KeyboardMode?.isActive) return; // Mode contrôleur navigation inactif
+    
+    // Puis exécuter l'action mappée
+  }
+}
+```
+
+### 3. INTERFACE UTILISATEUR
+
+**Intégration dans index.html :**
+- **Onglet "Autres"** : Bouton "🎮 Contrôleur Universel"
+- **Modal de mapping** avec 3 onglets :
+
+#### Onglet Navigation
+```html
+<!-- Croix directionnelle IDENTIQUE aux contrôles relatifs -->
+<div class="arrow-pad">
+  <div class="arrow-row">
+    <button class="arrow-btn">▲</button> <!-- Haut -->
+  </div>
+  <div class="arrow-row">
+    <button class="arrow-btn">◄</button> <!-- Gauche -->
+    <div class="arrow-center">XY</div>
+    <button class="arrow-btn">►</button> <!-- Droite -->
+  </div>
+  <div class="arrow-row">
+    <button class="arrow-btn">▼</button> <!-- Bas -->
+  </div>
+</div>
+
+<div class="z-controls-right">
+  <button class="z-btn">▲</button> <!-- Z+ -->
+  <div class="z-center">Z</div>
+  <button class="z-btn">▼</button> <!-- Z- -->
+</div>
+```
+
+#### Onglet Fonctions
+- **Recherche avec dropdown automatique** (onfocus + oninput)
+- **Catégories pliables** : Navigation, Historique, Paramètres, Affichage, Plateau, Enderscope
+- **Bouton "+"** discret (pas ➕) pour chaque fonction
+
+#### Onglet Presets
+- **Cartes visuelles** pour MIDI et Gamepad
+- **Boutons "Appliquer"** avec presets prédéfinis
+
+### 4. ANIMATION D'ATTENTE MAPPING
+
+**CRITIQUE : Overlay bloquant pendant le mapping**
+```javascript
+showMappingOverlay(actionName) {
+  // Overlay semi-transparent avec backdrop-filter: blur(2px)
+  // Message clignotant avec animation CSS fadeInOut
+  // Annulation par Échap
+  // Z-index 10000 pour bloquer TOUTE interaction
+}
+```
+
+**Animation CSS requise :**
+```css
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+```
+
+## 🔒 SÉCURITÉS OBLIGATOIRES
+
+### Double Protection Mouvement
+```javascript
+// Dans handleUniversalInput ET executeAction :
+if (!this.isActive) {
+  console.log('🚫 Contrôleur externe inactif');
+  return;
+}
+
+if (!window.EnderTrack?.KeyboardMode?.isActive) {
+  console.log('🚫 Mode contrôleur navigation inactif');
+  return;
+}
+```
+
+**Logique :**
+1. Utilisateur doit activer contrôleur externe (Autres → 🎮)
+2. Utilisateur doit activer mode contrôleur navigation (🕹️ bouton)
+3. SEULEMENT alors les mouvements sont autorisés
+
+## 🎨 STYLE ENDERTRACK OBLIGATOIRE
+
+**Variables CSS à utiliser :**
+```css
+var(--success)    /* Vert pour succès */
+var(--danger)     /* Rouge pour erreur */
+var(--warning)    /* Jaune pour attente */
+var(--primary)    /* Bleu pour info */
+var(--text-secondary) /* Gris pour texte secondaire */
+var(--panel-bg)   /* Fond des panneaux */
+var(--border)     /* Bordures */
+```
+
+**Classes CSS à réutiliser :**
+- `display-tabs` / `display-tab` / `display-tab-content`
+- `setting-group` / `input-with-buttons` / `validate-btn`
+- `arrow-pad` / `arrow-btn` / `arrow-center` / `z-controls-right` / `z-btn`
+- `config-actions` / `modal-btn` / `template-card`
+
+## 📁 STRUCTURE FICHIERS FINALE
+
+```
+endertrack_16/
+├── universal-input-bridge.py          # Bridge Python universel
+├── start-universal-bridge.sh          # Script de démarrage
+├── external-controller.js             # Contrôleur JavaScript
+└── index.html                         # Interface intégrée
+```
+
+## 🚀 SCRIPT DE DÉMARRAGE
+
+**start-universal-bridge.sh :**
+```bash
+#!/bin/bash
+# Vérification dépendances : websockets, pygame
+# Vérification outils : jstest, aseqdump
+# Lancement : python3 "$(dirname "$0")/universal-input-bridge.py"
+```
+
+## 🎯 FONCTIONS ENDERTRACK À MAPPER
+
+**25+ fonctions par catégories :**
+```javascript
+const availableFunctions = [
+  // Navigation
+  { id: 'goHome_xy', name: 'Home XY', category: 'navigation' },
+  { id: 'goHome_xyz', name: 'Home XYZ', category: 'navigation' },
+  { id: 'emergencyStop', name: 'Arrêt urgence', category: 'navigation' },
+  
+  // Historique  
+  { id: 'clearHistory', name: 'Effacer historique', category: 'history' },
+  { id: 'saveTrack', name: 'Sauver track', category: 'history' },
+  
+  // Paramètres
+  { id: 'toggleCoupling', name: 'Couplage XY', category: 'settings' },
+  { id: 'setPresetFine', name: 'Preset fin', category: 'settings' },
+  
+  // Affichage
+  { id: 'toggleZPanel', name: 'Panneau Z', category: 'display' },
+  { id: 'openDisplayModal', name: 'Paramètres affichage', category: 'display' },
+  
+  // Plateau
+  { id: 'openTemplateModal', name: 'Profils plateau', category: 'plateau' },
+  
+  // Enderscope
+  { id: 'toggleConnection', name: 'Connexion Enderscope', category: 'enderscope' },
+  { id: 'sendBeep', name: 'Bip sonore', category: 'enderscope' }
+];
+```
+
+## ⚠️ POINTS CRITIQUES À RESPECTER
+
+1. **Pas de mouvement** tant que les 2 sécurités ne sont pas actives
+2. **Overlay bloquant** pendant le mapping avec animation
+3. **Style 100% cohérent** avec EnderTrack existant
+4. **Architecture extensible** pour futurs périphériques
+5. **Gestion d'erreurs** robuste (déconnexions, etc.)
+6. **Format de message unifié** pour tous périphériques
+7. **Sauvegarde/Chargement** des configurations
+8. **Presets fonctionnels** MIDI et Gamepad
+
+## 🎯 RÉSULTAT ATTENDU
+
+Un système universel, propre, sécurisé et parfaitement intégré permettant de contrôler EnderTrack avec n'importe quel périphérique d'entrée, sans aucun bug ni doublon de code.
+
+---
+**Note :** Ce système remplace complètement l'ancien système MIDI spécifique. Tout doit être refait au propre selon cette architecture universelle.
